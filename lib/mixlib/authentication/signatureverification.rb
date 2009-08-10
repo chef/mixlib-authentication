@@ -1,8 +1,7 @@
 require 'ostruct'
 require 'net/http'
-
+require 'mixlib/authentication'
 require 'mixlib/authentication/signedheaderauth'
-require 'mixlib/authentication/digester'
 
 module Mixlib
   module Authentication
