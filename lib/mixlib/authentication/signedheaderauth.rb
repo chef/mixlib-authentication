@@ -35,11 +35,11 @@ module Mixlib
         
 		signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp.gsub!(/\n/,"\n\t")
 		header_hash = {
-          :x_ops_sign=>SIGNING_DESCRIPTION,
-          :x_ops_userid=>user_id,
-          :x_ops_timestamp=> canonical_time,
-          :x_ops_content_hash=>@hashed_body,
-          :authorization=>signature,
+          "X-Ops-Sign" => SIGNING_DESCRIPTION,
+          "X-Ops-Userid" => user_id,
+          "X-Ops-Timestamp" => canonical_time,
+          "X-Ops-Content-Hash" =>@hashed_body,
+          "Authorization" => signature,
         }
         Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
         
