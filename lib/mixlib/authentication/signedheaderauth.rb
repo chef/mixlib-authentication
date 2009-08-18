@@ -61,10 +61,7 @@ module Mixlib
       # 
       # 
       def canonicalize_request
-        Mixlib::Authentication::Log.debug "canonicalize_request:"
-        canon_request = "Method:#{http_method.to_s.upcase}\nX-Ops-Content-Hash:#{@hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
-        Mixlib::Authentication::Log.debug "canonicalize_request: #{canon_request}"
-        canon_request
+        "Method:#{http_method.to_s.upcase}\nX-Ops-Content-Hash:#{@hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
       end
       
       # Parses signature version information, algorithm used, etc.

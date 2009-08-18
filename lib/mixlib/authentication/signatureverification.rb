@@ -23,7 +23,7 @@ module Mixlib
       def authenticate_user_request(request, user_lookup, time_skew=(15*60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
         
-        headers ||= request.env.inject({ }) { |memo, kv| memo[$2.downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
+        headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
         digester = Mixlib::Authentication::Digester.new        
 
         begin
