@@ -1,4 +1,3 @@
-require 'couchrest'
 require 'mixlib/log'
 
 module Mixlib
