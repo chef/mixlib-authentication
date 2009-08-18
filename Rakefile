@@ -26,7 +26,8 @@ spec = Gem::Specification.new do |s|
   s.homepage = HOMEPAGE
   
   # Uncomment this to add a dependency
-  # s.add_dependency "foo"
+  s.add_dependency "ruby-hmac"
+  s.add_dependency "mixlib-log"
   
   s.require_path = 'lib'
   s.autorequire = GEM
