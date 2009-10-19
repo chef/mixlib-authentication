@@ -5,6 +5,9 @@ module Mixlib
     class Log
       extend  Mixlib::Log      
     end
+    
+    Log.level :error
+    
   end
 end
 
