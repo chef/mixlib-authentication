@@ -32,19 +32,23 @@ module Mixlib
           @signing_description = headers[:x_ops_sign].chomp
           @user_id             = headers[:x_ops_userid].chomp
           @timestamp           = headers[:x_ops_timestamp].chomp
-          @request_signature   = headers[:authorization].chomp.gsub!(/\n\t/,"\n")
+          @request_signature   = headers[:authorization].chomp.gsub(/\n\t/,"\n")
           @host                = headers[:host].chomp
           @content_hash        = headers[:x_ops_content_hash].chomp
           @user_secret         = user_lookup
 
-
-          file_param = request.params["file"]
+          # Any file that's included in the request is hashed if it's there. Otherwise,
+          # we hash the body. Look for files by looking for objects that respond to
+          # the read call.
+          file_param = request.params.values.find { |value| value.respond_to?(:read) }
 
           @hashed_body = if file_param
                            Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
                            if file_param.respond_to?(:has_key?)
                              tempfile = file_param[:tempfile]
                              digester.hash_file(tempfile)
+                           elsif file_param.respond_to?(:read)
+                             digester.hash_file(file_param)
                            else
                              digester.hash_body(file_param)
                            end
@@ -54,7 +58,7 @@ module Mixlib
                            digester.hash_body(body)
                          end
 
-          Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is: #{@user_secret}, Request signature is :\n#{@request_signature}, Hashed Body is #{@hashed_body}"
+          Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Auth HTTP header is :\n#{headers[:authorization]}, Hashed Body is : #{@hashed_body}"
           
           #BUGBUG Not doing anything with the signing description yet [cb]          
           parse_signing_description

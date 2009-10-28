@@ -21,11 +21,11 @@ module Mixlib
         end
       end
 	  
-	  # Build the canonicalized request based on the method, other headers, etc.
+      # Build the canonicalized request based on the method, other headers, etc.
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
-      # private_key<String>:: user's RSA private key.
-	  def sign(private_key)
+      # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
+      def sign(private_key)
         digester = Mixlib::Authentication::Digester.new
         @hashed_body = if self.file
                          digester.hash_file(self.file)
@@ -33,8 +33,8 @@ module Mixlib
                          digester.hash_body(self.body)
                        end
         
-		signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp.gsub!(/\n/,"\n\t")
-		header_hash = {
+        signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp.gsub!(/\n/,"\n\t")
+        header_hash = {
           "X-Ops-Sign" => SIGNING_DESCRIPTION,
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
@@ -44,7 +44,7 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
         
         header_hash
-	  end
+      end
       
       # Build the canonicalized time based on utc & iso8601
       # 
