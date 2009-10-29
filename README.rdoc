@@ -1,41 +1,23 @@
-== Mixlib::Auth
+== Mixlib::Authentication
 
-Mixlib::Auth provides a class-based header signing authentication object, like the one used in Chef.  To use in your project:
+Mixlib::Authentication provides a class-based header signing authentication object, like the one used in Chef. 
 
-  require 'rubygems'
-  require 'mixlib/config'
-  
-  class MyConfig
-    extend(Mixlib::Config)
-    configure do |c|
-      c[:first_value] = 'something'
-      c[:other_value] = 'something_else'
-    end
-  end
-  
-Or...
+== License
 
-  class MyConfig
-    extend(Mixlib::Config)
-    
-    first_value 'something'
-    other_value 'something_else'
-  end
-  
-To check a configuration variable:
+Author:: Christopher Brown (<cb@opscode.com>)
+Copyright:: Copyright (c) 2009 Opscode, Inc.
+License:: Apache License, Version 2.0
 
-  MyConfig.first_value   # returns 'something'
-  MyConfig[:first_value] # returns 'something'
-  
-To change a configuration variable at runtime:
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-  MyConfig.first_value('foobar')    # sets first_value to 'foobar'
-  MyConfig[:first_value] = 'foobar' # sets first_value to 'foobar' 
-  
-You should populate your class with the default values for every configuration variable that might be accessed. If you try and access a variable that does not exist, Mixlib::Config will throw an <ArgumentError>.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-To load a ruby configuration file (which will evaluate in the context of your configuration class):
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-  MyConfig.from_file('your_config_file.rb')
-  
-Enjoy!
+
