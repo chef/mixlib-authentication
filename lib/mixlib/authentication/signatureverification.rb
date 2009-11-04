@@ -32,11 +32,27 @@ module Mixlib
           @signing_description = headers[:x_ops_sign].chomp
           @user_id             = headers[:x_ops_userid].chomp
           @timestamp           = headers[:x_ops_timestamp].chomp
-          @request_signature   = headers[:authorization].chomp.gsub(/\n\t/,"\n")
           @host                = headers[:host].chomp
           @content_hash        = headers[:x_ops_content_hash].chomp
           @user_secret         = user_lookup
 
+          # The authorization header is a Base64-encoded version of an RSA signature.
+          # The client sent it on multiple header lines, starting at index 1 - 
+          # X-Ops-Authorization-1, X-Ops-Authorization-2, etc. Pull them out and
+          # concatenate.
+          @request_signature = ""
+          header_idx = 1
+          while (header_idx == 1 || !header_value.nil?)
+            header_name = "X-Ops-Authorization-#{header_idx}"
+            header_sym = header_name.downcase.to_sym
+            header_value = headers[header_sym]
+            if !header_value.nil?
+              @request_signature += "\n" if @request_signature.length > 0
+              @request_signature += header_value.strip
+            end
+            header_idx += 1
+          end
+          
           # Any file that's included in the request is hashed if it's there. Otherwise,
           # we hash the body. Look for files by looking for objects that respond to
           # the read call.

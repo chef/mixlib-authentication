@@ -33,14 +33,22 @@ module Mixlib
                          digester.hash_body(self.body)
                        end
         
-        signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp.gsub!(/\n/,"\n\t")
         header_hash = {
           "X-Ops-Sign" => SIGNING_DESCRIPTION,
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
           "X-Ops-Content-Hash" =>@hashed_body,
-          "Authorization" => signature,
         }
+
+        # Our multiline hash for authorization will be encoded in multiple header
+        # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
+        signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp
+        signature_lines = signature.split(/\n/)
+        signature_lines.each_index do |idx|
+          key = "X-Ops-Authorization-#{idx + 1}"
+          header_hash[key] = signature_lines[idx]
+        end
+          
         Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
         
         header_hash
