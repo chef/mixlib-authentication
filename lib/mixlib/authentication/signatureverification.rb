@@ -58,18 +58,10 @@ module Mixlib
           # The client sent it on multiple header lines, starting at index 1 - 
           # X-Ops-Authorization-1, X-Ops-Authorization-2, etc. Pull them out and
           # concatenate.
-          @request_signature = ""
-          header_idx = 1
-          while (header_idx == 1 || !header_value.nil?)
-            header_name = "X-Ops-Authorization-#{header_idx}"
-            header_sym = header_name.downcase.to_sym
-            header_value = headers[header_sym]
-            if !header_value.nil?
-              @request_signature += "\n" if @request_signature.length > 0
-              @request_signature += header_value.strip
-            end
-            header_idx += 1
-          end
+
+          # if there are 11 headers, the sort breaks - it becomes lexicographic sort rather than numeric [cb]
+          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
+          Mixlib::Authentication::Log.debug "Reconstituted request signature: #{@request_signature}"
           
           # Any file that's included in the request is hashed if it's there. Otherwise,
           # we hash the body. Look for files by looking for objects that respond to
