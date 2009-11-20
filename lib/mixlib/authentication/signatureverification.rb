@@ -38,6 +38,7 @@ module Mixlib
       # X-Ops-UserId: <user_id>
       # X-Ops-Timestamp:
       # X-Ops-Content-Hash: 
+      # X-Ops-Authorization-#{line_number}
       def authenticate_user_request(request, user_lookup, time_skew=(15*60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
         
@@ -63,27 +64,38 @@ module Mixlib
           @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
           Mixlib::Authentication::Log.debug "Reconstituted request signature: #{@request_signature}"
           
-          # Any file that's included in the request is hashed if it's there. Otherwise,
-          # we hash the body. Look for files by looking for objects that respond to
-          # the read call.
+          # Pull out any file that was attached to this request, using multipart
+          # form uploads.
+          # Depending on the server we're running in, multipart form uploads are
+          # handed to us differently. 
+          # - In Passenger (Cookbooks Community Site), the File is handed to us 
+          #   directly in the params hash. The name is whatever the client used, 
+          #   its value is therefore a File or Tempfile.
+          # - In Merb (Chef server), the File is wrapped. The original parameter 
+          #   name used for the file is passed in with a Hash value. Within the hash
+          #   is a name/value pair named 'file' which actually contains the Tempfile
+          #   instance.
           file_param = request.params.values.find { |value| value.respond_to?(:read) }
 
-          @hashed_body = if file_param
-                           Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
-                           if file_param.respond_to?(:has_key?)
-                             tempfile = file_param[:tempfile]
-                             digester.hash_file(tempfile)
-                           elsif file_param.respond_to?(:read)
-                             digester.hash_file(file_param)
-                           else
-                             digester.hash_body(file_param)
-                           end
-                         else
-                           body = request.raw_post
-                           Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
-                           digester.hash_body(body)
-                         end
+          # No file_param; we're running in Merb, or it's just not there..
+          if file_param.nil?
+            hash_param = request.params.values.find { |value| value.respond_to?(:has_key?) }  # Hash responds to :has_key? .
+            if !hash_param.nil?
+              file_param = hash_param.values.find { |value| value.respond_to?(:read) } # File/Tempfile responds to :read.
+            end
+          end
 
+          # Any file that's included in the request is hashed if it's there. Otherwise,
+          # we hash the body.
+          if file_param
+            Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
+            @hashed_body = digester.hash_file(file_param)
+          else
+            body = request.raw_post
+            Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
+            @hashed_body = digester.hash_body(body)
+          end
+          
           Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Auth HTTP header is :\n#{headers[:authorization]}, Hashed Body is : #{@hashed_body}"
           
           #BUGBUG Not doing anything with the signing description yet [cb]          
@@ -94,7 +106,7 @@ module Mixlib
           timeskew_is_acceptable = timestamp_within_bounds?(Time.parse(timestamp), Time.now)
           hashes_match = @content_hash == hashed_body
         rescue StandardError=>se
-          raise StandardError,"Failed to authenticate user request.  Most likely missing a necessary header: #{se.message}"
+          raise StandardError,"Failed to authenticate user request.  Most likely missing a necessary header: #{se.message}", se.backtrace
         end
         
         Mixlib::Authentication::Log.debug "Candidate Block is: '#{candidate_block}'\nRequest decrypted block is: '#{request_decrypted_block}'\nCandidate content hash is: #{hashed_body}\nRequest Content Hash is: '#{@content_hash}'\nSignatures match: #{signatures_match}, Allowed Time Skew: #{timeskew_is_acceptable}, Hashes match?: #{hashes_match}\n"
