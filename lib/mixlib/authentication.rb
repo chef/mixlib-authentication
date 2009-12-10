@@ -24,7 +24,7 @@ module Mixlib
       extend  Mixlib::Log      
     end
     
-    Log.level :error
+    Log.level = :error
     
   end
 end

@@ -96,7 +96,7 @@ module Mixlib
             @hashed_body = digester.hash_body(body)
           end
           
-          Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Auth HTTP header is :\n#{headers[:authorization]}, Hashed Body is : #{@hashed_body}"
+          Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Hashed Body is : #{@hashed_body}"
           
           #BUGBUG Not doing anything with the signing description yet [cb]          
           parse_signing_description
