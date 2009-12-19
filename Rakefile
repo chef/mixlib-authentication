@@ -3,7 +3,6 @@ require 'rake/gempackagetask'
 require 'rubygems/specification'
 require 'date'
 require 'spec/rake/spectask'
-require 'cucumber/rake/task'
 
 
 GEM = "mixlib-authentication"
@@ -34,7 +33,7 @@ spec = Gem::Specification.new do |s|
   s.files = %w(LICENSE README.rdoc Rakefile NOTICE) + Dir.glob("{lib,spec,features}/**/*")
 end
 
-task :default => :test
+task :default => :spec
 
 desc "Run specs"
 Spec::Rake::SpecTask.new do |t|
@@ -56,12 +55,6 @@ task :make_spec do
   File.open("#{GEM}.gemspec", "w") do |file|
     file.puts spec.to_ruby
   end
-end
-
-Cucumber::Rake::Task.new(:features) do |t|
-  t.step_pattern = 'features/steps/**/*.rb'
-  supportdir = 'features/support'
-  t.cucumber_opts = "--format pretty -r #{supportdir}"
 end
 
 desc "remove build files"
