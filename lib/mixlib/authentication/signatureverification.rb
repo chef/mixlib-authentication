@@ -64,17 +64,26 @@ module Mixlib
           @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
           Mixlib::Authentication::Log.debug "Reconstituted request signature: #{@request_signature}"
           
+          # The request signature is based on any file attached, if any. Otherwise
+          # it's based on the body of the request.
+          # TODO: tim: 2009-12-28: It'd be nice to remove this special case, and
+          # always hash the entire request body. In the file case it would just be
+          # expanded multipart text - the entire body of the POST.
+          #
           # Pull out any file that was attached to this request, using multipart
           # form uploads.
           # Depending on the server we're running in, multipart form uploads are
           # handed to us differently. 
           # - In Passenger (Cookbooks Community Site), the File is handed to us 
           #   directly in the params hash. The name is whatever the client used, 
-          #   its value is therefore a File or Tempfile.
+          #   its value is therefore a File or Tempfile. 
+          #   e.g. request['file_param'] = File
+          #   
           # - In Merb (Chef server), the File is wrapped. The original parameter 
-          #   name used for the file is passed in with a Hash value. Within the hash
-          #   is a name/value pair named 'file' which actually contains the Tempfile
-          #   instance.
+          #   name used for the file is used, but its value is a Hash. Within
+          #   the hash is a name/value pair named 'file' which actually 
+          #   contains the Tempfile instance.
+          #   e.g. request['file_param'] = { :file => Tempfile }
           file_param = request.params.values.find { |value| value.respond_to?(:read) }
 
           # No file_param; we're running in Merb, or it's just not there..

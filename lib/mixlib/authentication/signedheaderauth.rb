@@ -45,7 +45,13 @@ module Mixlib
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
       def sign(private_key)
         digester = Mixlib::Authentication::Digester.new
-        @hashed_body = if self.file
+
+        # Hash the file object if it was passed in, otherwise hash based on
+        # the body.
+        # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
+        # always sign the entire request body, using the expanded multipart
+        # body in the case of a file being include.
+        @hashed_body = if self.file && self.file.respond_to?(:read)
                          digester.hash_file(self.file)
                        else
                          digester.hash_body(self.body)
