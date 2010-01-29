@@ -35,7 +35,7 @@ module Mixlib
       # time2<Time>:: subtrahend
       #
       def hash_file(f)
-        digester = OpenSSL::Digest::SHA1.new
+        digester = Digest::SHA1.new
         buf = ""
         while f.read(16384, buf)
           digester.update buf
@@ -49,7 +49,7 @@ module Mixlib
       # ====Parameters
       # 
       def hash_body(body)
-        @hashed_body ||= ::Base64.encode64(OpenSSL::Digest::SHA1.digest(body)).chomp
+        @hashed_body ||= ::Base64.encode64(Digest::SHA1.digest(body)).chomp
       end      
     end
   end
