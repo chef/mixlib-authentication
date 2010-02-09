@@ -19,9 +19,7 @@
 require 'time'
 require 'base64'
 require 'ostruct'
-require 'digest/sha2'
-require 'hmac'
-require 'hmac-sha2'
+require 'digest/sha1'
 require 'mixlib/authentication'
 require 'mixlib/authentication/digester'
 
