@@ -1,5 +1,6 @@
 #
 # Author:: Christopher Brown (<cb@opscode.com>)
+# Author:: Christopher Walters (<cw@opscode.com>)
 # Copyright:: Copyright (c) 2009 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
@@ -58,14 +59,15 @@ module Mixlib
 
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
-        signature = Base64.encode64(private_key.private_encrypt(canonicalize_request)).chomp
+        string_to_sign = canonicalize_request
+        signature = Base64.encode64(private_key.private_encrypt(string_to_sign)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
           key = "X-Ops-Authorization-#{idx + 1}"
           header_hash[key] = signature_lines[idx]
         end
-          
-        Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
+        
+        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'\nHeader hash: #{header_hash.inspect}"
         
         header_hash
       end
@@ -77,7 +79,17 @@ module Mixlib
       def canonical_time
         Time.parse(timestamp).utc.iso8601      
       end
-
+      
+      # Build the canonicalized path, which collapses multiple slashes (/) and
+      # removes a trailing slash unless the path is only "/"
+      # 
+      # ====Parameters
+      # 
+      def canonical_path
+        p = path.gsub(/\/+/,'/')
+        p.length > 1 ? p.chomp('/') : p
+      end
+      
       # Takes HTTP request method & headers and creates a canonical form
       # to create the signature
       # 
@@ -85,7 +97,7 @@ module Mixlib
       # 
       # 
       def canonicalize_request
-        "Method:#{http_method.to_s.upcase}\nX-Ops-Content-Hash:#{@hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
+        "Method:#{http_method.to_s.upcase}\nPath:#{canonical_path}\nX-Ops-Content-Hash:#{@hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
       end
       
       # Parses signature version information, algorithm used, etc.
@@ -101,7 +113,7 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Parsed signing description: #{parts.inspect}"
       end
       
-      private :canonical_time, :canonicalize_request, :parse_signing_description
+      private :canonical_time, :canonical_path, :canonicalize_request, :parse_signing_description
       
     end
   end

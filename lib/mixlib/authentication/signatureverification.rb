@@ -1,6 +1,7 @@
 #
 # Author:: Christopher Brown (<cb@opscode.com>)
-# Copyright:: Copyright (c) 2009 Opscode, Inc.
+# Author:: Christopher Walters (<cw@opscode.com>)
+# Copyright:: Copyright (c) 2009, 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,7 @@ module Mixlib
 
       include Mixlib::Authentication::SignedHeaderAuth
       
-      attr_reader :hashed_body, :timestamp, :http_method, :user_id
+      attr_reader :hashed_body, :timestamp, :http_method, :path, :user_id
 
       # Takes the request, boils down the pieces we are interested in,
       # looks up the user, generates a signature, and compares to
@@ -43,11 +44,12 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
         
         headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
-        digester = Mixlib::Authentication::Digester.new        
+        digester = Mixlib::Authentication::Digester.new
 
         begin
           @allowed_time_skew   = time_skew # in seconds
           @http_method         = request.method.to_s
+          @path                = request.path.to_s
           @signing_description = headers[:x_ops_sign].chomp
           @user_id             = headers[:x_ops_userid].chomp
           @timestamp           = headers[:x_ops_timestamp].chomp
