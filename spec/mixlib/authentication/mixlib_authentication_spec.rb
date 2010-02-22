@@ -28,11 +28,12 @@ require 'time'
 
 # TODO: should make these regular spec-based mock objects.
 class MockRequest
-  attr_accessor :env, :params, :raw_post
+  attr_accessor :env, :params, :path, :raw_post
 
-  def initialize(headers, params, raw_post)
-    @env = headers
+  def initialize(path, params, headers, raw_post)
+    @path = path
     @params = params
+    @env = headers
     @raw_post = raw_post
   end
 
@@ -74,6 +75,7 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
       :http_method => :post,
       :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
       :file => MockFile.new,
+      :path => PATH,
     }
 
     private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
@@ -84,6 +86,7 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     # the results of res.inspect and copy them as appropriate into the 
     # the constants in this file.
     res = signing_obj.sign(private_key)
+    #$stderr.puts "res.inspect = #{res.inspect}"
     res.should == EXPECTED_SIGN_RESULT
   end
 end
@@ -99,7 +102,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
     request_params["file"] =
       { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
 
-    mock_request = MockRequest.new(MERB_HEADERS, request_params, "")
+    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS, "")
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -108,7 +111,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 
   it "should authenticate a normal (post body) request - Merb" do
-    mock_request = MockRequest.new(MERB_HEADERS, MERB_REQUEST_PARAMS, BODY)
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS, BODY)
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -120,7 +123,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
     request_params = PASSENGER_REQUEST_PARAMS.clone
     request_params["tarball"] = MockFile.new
 
-    mock_request = MockRequest.new(PASSENGER_HEADERS, request_params, "")
+    mock_request = MockRequest.new(PATH, request_params, PASSENGER_HEADERS, "")
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -132,7 +135,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
     headers = MERB_HEADERS.clone
     headers["HTTP_X_OPS_CONTENT_HASH"] += "_"
 
-    mock_request = MockRequest.new(headers, MERB_REQUEST_PARAMS, BODY)
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -146,18 +149,19 @@ USER_ID = "spec-user"
 BODY = "Spec Body"
 TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
 TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
+PATH = "/organizations/clownco"
 
 REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 
 # Content hash is ???TODO
 X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
 X_OPS_AUTHORIZATION_LINES = [
-  "GtDNsSpYDNOqN10Y+Xc28EMwAw5os931TKbJ6XmhaGi5xB12gN4Gw2atjeQr", 
-  "cZW3z3YGds+MlFZmQIoxgmQmYcUw176HQkMkP1e2Nd0674/ZiPprAAi1ak2s", 
-  "CHBlYQWkBHRg6s1rLNhI1nPwjF6m8g9fZ6b0gdwRkSKvS2m5l0es8p7zI7GT", 
-  "++etikvDfp7AXDtWkO8CeQObd4EKvZKBp/bOPSyl0u6/sFE753b6SvH1qOt+", 
-  "nMGavVyDHLHMvjnbBPif5o+VufYYcdKz9IgUDEs7Ul81NAWAwjOdpVxJnY2A", 
-  "0cgt6ij6eEk/I3CvXlo1rsW1+pZ7AJLPgISY2JeVOw==", 
+  "fXOBxpvfVpDFexP+Dl2k3RO/m4RLws8ii6+PsAY4pgwk6IxIFew7lL4ErWKA",
+  "80HVVx3lKALfGqx+XLZiX1ZwbHhMhfS2oUAbxssx+g3nlxSmN/c+cg2/hprj",
+  "0m+xwkpONuwVj06IKGe9WtMyDE0GNu7VFx/HWf4BCXMU3DZTsxD40Rm5Aqml",
+  "r8paPDo5ozoJRing2NOfj9uPpRCnjmUamwSVo/tgTOmWQxnp7YeI82YLfl6Z", 
+  "i5qXzLMPzq/rA5Bt0dAZQxkCCvyVVXyn0pX0xHPgoeFcAJ/atc7hnIVxMzzM",
+  "xZn9HIwo9wRYbWdwvRLVdbz/jmlGbBcDbInFtVOjpA=="
 ]
 
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
