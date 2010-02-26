@@ -89,6 +89,22 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     #$stderr.puts "res.inspect = #{res.inspect}"
     res.should == EXPECTED_SIGN_RESULT
   end
+
+  it "should not choke when signing a request for a resource with a long name" do
+    args = {
+      :body => BODY, 
+      :user_id => USER_ID,
+      :http_method => :put,
+      :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+      :file => MockFile.new,
+      :path => PATH + "/nodes/#{"A" * 100}"}
+
+    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+      
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(args)
+
+    lambda { signing_obj.sign(private_key) }.should_not raise_error
+  end
 end
 
 describe "Mixlib::Authentication::SignatureVerification" do
