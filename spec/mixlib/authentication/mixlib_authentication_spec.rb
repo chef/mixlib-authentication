@@ -1,6 +1,7 @@
 #
 # Author:: Tim Hinderliter (<tim@opscode.com>)
-# Copyright:: Copyright (c) 2009 Opscode, Inc.
+# Author:: Christopher Walters (<cw@opscode.com>)
+# Copyright:: Copyright (c) 2009, 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +17,8 @@
 # limitations under the License.
 #
 
-$:.push File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "lib")) # lib in mixlib-authentication
-$:.push File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "mixlib-log", "lib")) # mixlib-log/log
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "lib")) # lib in mixlib-authentication
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "mixlib-log", "lib")) # mixlib-log/log
 
 require 'rubygems'
 
@@ -66,7 +67,7 @@ end
 #Mixlib::Authentication::Log.level :debug
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
-  it "should sign headers" do
+  it "should generate the correct string to sign and signature" do
     # fix the timestamp, private key and body so we get the same answer back
     # every time.
     args = {
@@ -81,6 +82,15 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
       
     signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(args)
+    
+    expected_string_to_sign = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH}
+X-Ops-Content-Hash:#{HASHED_BODY}
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{USER_ID}
+EOS
+    signing_obj.canonicalize_request.should == expected_string_to_sign.chomp
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the 
@@ -102,7 +112,7 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
       
     signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(args)
-
+    
     lambda { signing_obj.sign(private_key) }.should_not raise_error
   end
 end
@@ -163,21 +173,23 @@ end
 
 USER_ID = "spec-user"
 BODY = "Spec Body"
+HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=" # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
 TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
 TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
 PATH = "/organizations/clownco"
+HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
 
 REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 
 # Content hash is ???TODO
 X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
 X_OPS_AUTHORIZATION_LINES = [
-  "fXOBxpvfVpDFexP+Dl2k3RO/m4RLws8ii6+PsAY4pgwk6IxIFew7lL4ErWKA",
-  "80HVVx3lKALfGqx+XLZiX1ZwbHhMhfS2oUAbxssx+g3nlxSmN/c+cg2/hprj",
-  "0m+xwkpONuwVj06IKGe9WtMyDE0GNu7VFx/HWf4BCXMU3DZTsxD40Rm5Aqml",
-  "r8paPDo5ozoJRing2NOfj9uPpRCnjmUamwSVo/tgTOmWQxnp7YeI82YLfl6Z", 
-  "i5qXzLMPzq/rA5Bt0dAZQxkCCvyVVXyn0pX0xHPgoeFcAJ/atc7hnIVxMzzM",
-  "xZn9HIwo9wRYbWdwvRLVdbz/jmlGbBcDbInFtVOjpA=="
+  "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
+  "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
+  "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
+  "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
+  "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
+  "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="
 ]
 
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this

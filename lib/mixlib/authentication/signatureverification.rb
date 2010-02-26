@@ -44,7 +44,7 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
         
         headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
-        digester = Mixlib::Authentication::Digester.new
+        digester = Mixlib::Authentication::Digester
 
         begin
           @allowed_time_skew   = time_skew # in seconds
@@ -95,7 +95,7 @@ module Mixlib
           else
             body = request.raw_post
             Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
-            @hashed_body = digester.hash_body(body)
+            @hashed_body = digester.hash_string(body)
           end
           
           Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Hashed Body is : #{@hashed_body}"

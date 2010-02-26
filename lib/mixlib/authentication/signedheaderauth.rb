@@ -1,7 +1,7 @@
 #
 # Author:: Christopher Brown (<cb@opscode.com>)
 # Author:: Christopher Walters (<cw@opscode.com>)
-# Copyright:: Copyright (c) 2009 Opscode, Inc.
+# Copyright:: Copyright (c) 2009, 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,28 +37,21 @@ module Mixlib
           OpenStruct.new(args).extend SignedHeaderAuth
         end
       end
-	  
+
       # Build the canonicalized request based on the method, other headers, etc.
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
       def sign(private_key)
-        digester = Mixlib::Authentication::Digester.new
-        @hashed_body = if self.file
-                         digester.hash_file(self.file)
-                       else
-                         digester.hash_body(self.body)
-                       end
-        
+        # Our multiline hash for authorization will be encoded in multiple header
+        # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
           "X-Ops-Sign" => SIGNING_DESCRIPTION,
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
-          "X-Ops-Content-Hash" =>@hashed_body,
+          "X-Ops-Content-Hash" => hashed_body,
         }
 
-        # Our multiline hash for authorization will be encoded in multiple header
-        # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         string_to_sign = canonicalize_request
         signature = Base64.encode64(private_key.private_encrypt(string_to_sign)).chomp
         signature_lines = signature.split(/\n/)
@@ -77,7 +70,7 @@ module Mixlib
       # ====Parameters
       # 
       def canonical_time
-        Time.parse(timestamp).utc.iso8601      
+        Time.parse(timestamp).utc.iso8601
       end
       
       # Build the canonicalized path, which collapses multiple slashes (/) and
@@ -90,6 +83,10 @@ module Mixlib
         p.length > 1 ? p.chomp('/') : p
       end
       
+      def hashed_body
+        @hashed_body ||= self.file ? digester.hash_file(self.file) : digester.hash_string(self.body)
+      end
+      
       # Takes HTTP request method & headers and creates a canonical form
       # to create the signature
       # 
@@ -97,7 +94,7 @@ module Mixlib
       # 
       # 
       def canonicalize_request
-        "Method:#{http_method.to_s.upcase}\nPath:#{canonical_path}\nX-Ops-Content-Hash:#{@hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
+        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
       end
       
       # Parses signature version information, algorithm used, etc.
@@ -113,7 +110,11 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Parsed signing description: #{parts.inspect}"
       end
       
-      private :canonical_time, :canonical_path, :canonicalize_request, :parse_signing_description
+      def digester
+        Mixlib::Authentication::Digester
+      end
+      
+      private :canonical_time, :canonical_path, :parse_signing_description, :digester
       
     end
   end
