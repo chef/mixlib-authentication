@@ -4,9 +4,8 @@ require 'rubygems/specification'
 require 'date'
 require 'spec/rake/spectask'
 
-
 GEM = "mixlib-authentication"
-GEM_VERSION = "1.0.0"
+GEM_VERSION = "1.1.0"
 AUTHOR = "Opscode, Inc."
 EMAIL = "info@opscode.com"
 HOMEPAGE = "http://www.opscode.com"
