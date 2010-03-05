@@ -84,7 +84,12 @@ module Mixlib
       end
       
       def hashed_body
-        @hashed_body ||= self.file ? digester.hash_file(self.file) : digester.hash_string(self.body)
+        # Hash the file object if it was passed in, otherwise hash based on
+        # the body.
+        # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
+        # always sign the entire request body, using the expanded multipart
+        # body in the case of a file being include.
+        @hashed_body ||= (self.file && self.file.respond_to?(:read)) ? digester.hash_file(self.file) : digester.hash_string(self.body)
       end
       
       # Takes HTTP request method & headers and creates a canonical form
