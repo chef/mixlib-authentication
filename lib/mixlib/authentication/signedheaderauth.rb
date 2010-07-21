@@ -19,7 +19,6 @@
 
 require 'time'
 require 'base64'
-require 'ostruct'
 require 'digest/sha1'
 require 'mixlib/authentication'
 require 'mixlib/authentication/digester'
@@ -107,7 +106,7 @@ module Mixlib
       # ====Parameters
       #
       def parse_signing_description
-        parts = @signing_description.strip.split(";").inject({ }) do |memo, part|
+        parts = signing_description.strip.split(";").inject({ }) do |memo, part|
           field_name, field_value = part.split("=")
           memo[field_name.to_sym] = field_value.strip
           memo

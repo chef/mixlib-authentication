@@ -1,6 +1,7 @@
 #
-# Author:: Christopher Brown (<cb@opscode.com>)
-# Copyright:: Copyright (c) 2009 Opscode, Inc.
+# Author:: Tim Hinderliter (<tim@opscode.com>)
+# Author:: Christopher Walters (<cw@opscode.com>)
+# Copyright:: Copyright (c) 2009, 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,23 +17,7 @@
 # limitations under the License.
 #
 
-require 'mixlib/log'
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "lib")) # lib in mixlib-authentication
+$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "mixlib-log", "lib")) # mixlib-log/log
 
-module Mixlib
-  module Authentication
-    class AuthenticationError < StandardError
-    end
-
-    class MissingAuthenticationHeader < AuthenticationError
-    end
-
-    class Log
-      extend  Mixlib::Log      
-    end
-    
-    Log.level = :error
-    
-  end
-end
-
-
+require 'rubygems'

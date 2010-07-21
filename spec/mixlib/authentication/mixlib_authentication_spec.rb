@@ -17,9 +17,7 @@
 # limitations under the License.
 #
 
-$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "lib")) # lib in mixlib-authentication
-$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "mixlib-log", "lib")) # mixlib-log/log
-
+require File.expand_path(File.join(File.dirname(__FILE__), '..','..','spec_helper'))
 require 'rubygems'
 
 require 'ostruct'
