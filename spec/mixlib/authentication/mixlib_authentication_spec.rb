@@ -64,6 +64,7 @@ class MockFile
 end
 
 # Uncomment this to get some more info from the methods we're testing.
+#Mixlib::Authentication::Log.logger = Logger.new(STDERR)
 #Mixlib::Authentication::Log.level :debug
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
@@ -152,8 +153,8 @@ describe "Mixlib::Authentication::SignatureVerification" do
     mock_request = MockRequest.new(PATH, request_params, PASSENGER_HEADERS, "")
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
-    service = Mixlib::Authentication::SignatureVerification.new
-    res = service.authenticate_user_request(mock_request, @user_private_key)
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
     res.should_not be_nil
   end
 
@@ -164,9 +165,42 @@ describe "Mixlib::Authentication::SignatureVerification" do
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
-    service = Mixlib::Authentication::SignatureVerification.new
-    res = service.authenticate_user_request(mock_request, @user_private_key)
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
     res.should be_nil
+
+    auth_req.should_not be_a_valid_request
+    auth_req.should be_a_valid_timestamp
+    auth_req.should be_a_valid_signature
+    auth_req.should_not be_a_valid_content_hash
+  end
+
+  it "shouldn't authenticate if the timestamp is not within bounds" do
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS, BODY)
+    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ - 1000)
+
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
+    res.should be_nil
+    auth_req.should_not be_a_valid_request
+    auth_req.should_not be_a_valid_timestamp
+    auth_req.should be_a_valid_signature
+    auth_req.should be_a_valid_content_hash
+  end
+
+  it "shouldn't authenticate if the signature is wrong" do
+    headers =  MERB_HEADERS.dup
+    headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
+    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
+    res.should be_nil
+    auth_req.should_not be_a_valid_request
+    auth_req.should_not be_a_valid_signature
+    auth_req.should be_a_valid_timestamp
+    auth_req.should be_a_valid_content_hash
   end
 
 end

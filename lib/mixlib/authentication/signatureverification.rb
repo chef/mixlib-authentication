@@ -24,11 +24,30 @@ require 'mixlib/authentication/signedheaderauth'
 
 module Mixlib
   module Authentication
+    class SignatureResponse < Struct.new(:name)
+    end
+
+    class AuthenticationError < StandardError
+    end
+
+    class MissingAuthenticationHeader < AuthenticationError
+    end
+
     class SignatureVerification
+      MANDATORY_HEADERS = [:x_ops_sign, :x_ops_userid, :x_ops_timestamp, :host, :x_ops_content_hash]
 
       include Mixlib::Authentication::SignedHeaderAuth
       
-      attr_reader :hashed_body, :timestamp, :http_method, :path, :user_id
+      attr_reader :timestamp
+      attr_reader :http_method
+      attr_reader :path
+      attr_reader :user_id
+      attr_reader :request
+
+      def initialize
+        @valid_signature, @valid_timestamp, @valid_content_hash = false, false, false
+        @hashed_body = nil
+      end
 
       # Takes the request, boils down the pieces we are interested in,
       # looks up the user, generates a signature, and compares to
@@ -42,33 +61,127 @@ module Mixlib
       # X-Ops-Authorization-#{line_number}
       def authenticate_user_request(request, user_lookup, time_skew=(15*60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
-        
-        headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
+
+        @request, @user_secret  = request, user_lookup
+        @allowed_time_skew      = time_skew # in seconds
+
         digester = Mixlib::Authentication::Digester
 
         begin
-          @allowed_time_skew   = time_skew # in seconds
-          @http_method         = request.method.to_s
-          @path                = request.path.to_s
-          @signing_description = headers[:x_ops_sign].chomp
-          @user_id             = headers[:x_ops_userid].chomp
-          @timestamp           = headers[:x_ops_timestamp].chomp
-          @host                = headers[:host].chomp
-          @content_hash        = headers[:x_ops_content_hash].chomp
-          @user_secret         = user_lookup
 
-          # The authorization header is a Base64-encoded version of an RSA signature.
-          # The client sent it on multiple header lines, starting at index 1 - 
-          # X-Ops-Authorization-1, X-Ops-Authorization-2, etc. Pull them out and
-          # concatenate.
-
-          # if there are 11 headers, the sort breaks - it becomes lexicographic sort rather than numeric [cb]
-          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
-          Mixlib::Authentication::Log.debug "Reconstituted request signature: #{@request_signature}"
+          assert_required_headers_present
+          extract_auth_params_from_request
+          build_request_signature
           
-          # The request signature is based on any file attached, if any. Otherwise
-          # it's based on the body of the request.
-          # TODO: tim: 2009-12-28: It'd be nice to remove this special case, and
+          #BUGBUG Not doing anything with the signing description yet [cb]          
+          parse_signing_description
+
+          verify_signature
+          verify_timestamp
+          verify_content_hash
+
+          #timeskew_is_acceptable = timestamp_within_bounds?(Time.parse(timestamp), Time.now)
+          #hashes_match = (@content_hash == hashed_body)
+        rescue StandardError=>se
+          raise StandardError,"Failed to authenticate user request. Check your client key and clock: #{se.message}", se.backtrace
+        end
+
+        if valid_request?
+          SignatureResponse.new(:name=>user_id)
+        else
+          nil
+        end
+      end
+
+      def valid_signature?
+        @valid_signature
+      end
+
+      def valid_timestamp?
+        @valid_timestamp
+      end
+
+      def valid_content_hash?
+        @valid_content_hash
+      end
+
+      def valid_request?
+        valid_signature? && valid_timestamp? && valid_content_hash?
+      end
+
+      # The authorization header is a Base64-encoded version of an RSA signature.
+      # The client sent it on multiple header lines, starting at index 1 - 
+      # X-Ops-Authorization-1, X-Ops-Authorization-2, etc. Pull them out and
+      # concatenate.
+      def headers
+        @headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
+      end
+
+      private
+
+      def extract_auth_params_from_request
+        @http_method         = request.method.to_s
+        @path                = request.path.to_s
+        @signing_description = headers[:x_ops_sign].chomp
+        @user_id             = headers[:x_ops_userid].chomp
+        @timestamp           = headers[:x_ops_timestamp].chomp
+        @host                = headers[:host].chomp
+        @content_hash        = headers[:x_ops_content_hash].chomp
+        Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : \n#{@user_secret}"
+      end
+
+      def assert_required_headers_present
+        MANDATORY_HEADERS.each do |header|
+          unless headers.key?(header)
+            raise MissingAuthenticationHeader, "required authentication header #{header.to_s.upcase} missing"
+          end
+        end
+      end
+
+      def build_request_signature
+        # if there are 11 headers, the sort breaks - it becomes lexicographic sort rather than numeric [cb]
+        @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
+        Mixlib::Authentication::Log.debug "Reconstituted (user-supplied) request signature: #{@request_signature}"
+      end
+
+      def verify_signature
+        candidate_block = canonicalize_request
+        request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(@request_signature))
+        @valid_signature = (request_decrypted_block == candidate_block)
+
+        # Keep the debug messages lined up so it's easy to scan them
+        Mixlib::Authentication::Log.debug("Verifying request signature:")
+        Mixlib::Authentication::Log.debug(" Expected Block is: '#{candidate_block}'")
+        Mixlib::Authentication::Log.debug("Decrypted block is: '#{request_decrypted_block}'")
+        Mixlib::Authentication::Log.debug("Signatures match? : '#{@valid_signature}'")
+
+        @valid_signature
+      rescue => e
+        Mixlib::Authentication::Log.debug("Failed to verify request signature: #{e.class.name}: #{e.message}")
+        @valid_signature = false
+      end
+
+      def verify_timestamp
+        @valid_timestamp = timestamp_within_bounds?(Time.parse(timestamp), Time.now)
+      end
+
+      def verify_content_hash
+        @valid_content_hash = (@content_hash == hashed_body)
+
+        # Keep the debug messages lined up so it's easy to scan them
+        Mixlib::Authentication::Log.debug("Expected content hash is: '#{hashed_body}'")
+        Mixlib::Authentication::Log.debug(" Request Content Hash is: '#{@content_hash}'")
+        Mixlib::Authentication::Log.debug("           Hashes match?: #{@valid_content_hash}")
+
+        @valid_content_hash
+      end
+
+
+      # The request signature is based on any file attached, if any. Otherwise
+      # it's based on the body of the request.
+      def hashed_body
+        unless @hashed_body
+          # TODO: tim: 2009-112-28: It'd be nice to remove this special case, and
           # always hash the entire request body. In the file case it would just be
           # expanded multipart text - the entire body of the POST.
           #
@@ -106,31 +219,10 @@ module Mixlib
             Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
             @hashed_body = digester.hash_string(body)
           end
-          
-          Mixlib::Authentication::Log.debug "Authenticating user : #{user_id}, User secret is : #{@user_secret}, Request signature is :\n#{@request_signature}, Hashed Body is : #{@hashed_body}"
-          
-          #BUGBUG Not doing anything with the signing description yet [cb]          
-          parse_signing_description
-          candidate_block = canonicalize_request
-          request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(@request_signature))
-          signatures_match = (request_decrypted_block == candidate_block)
-          timeskew_is_acceptable = timestamp_within_bounds?(Time.parse(timestamp), Time.now)
-          hashes_match = @content_hash == hashed_body
-        rescue StandardError=>se
-          raise StandardError,"Failed to authenticate user request.  Most likely missing a necessary header: #{se.message}", se.backtrace
         end
-        
-        Mixlib::Authentication::Log.debug "Candidate Block is: '#{candidate_block}'\nRequest decrypted block is: '#{request_decrypted_block}'\nCandidate content hash is: #{hashed_body}\nRequest Content Hash is: '#{@content_hash}'\nSignatures match: #{signatures_match}, Allowed Time Skew: #{timeskew_is_acceptable}, Hashes match?: #{hashes_match}\n"
-        
-        if signatures_match and timeskew_is_acceptable and hashes_match
-          OpenStruct.new(:name=>user_id)
-        else
-          nil
-        end
+        @hashed_body
       end
-      
-      private
-      
+
       # Compare the request timestamp with boundary time
       # 
       # 
