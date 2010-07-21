@@ -18,6 +18,7 @@
 #
 
 require 'net/http'
+require 'forwardable'
 require 'mixlib/authentication'
 require 'mixlib/authentication/http_authentication_request'
 require 'mixlib/authentication/signedheaderauth'
@@ -28,7 +29,23 @@ module Mixlib
     end
 
     class SignatureVerification
-      MANDATORY_HEADERS = [:x_ops_sign, :x_ops_userid, :x_ops_timestamp, :host, :x_ops_content_hash]
+      extend Forwardable
+
+      def_delegator :@auth_request, :http_method
+
+      def_delegator :@auth_request, :path
+
+      def_delegator :auth_request, :signing_description
+
+      def_delegator :@auth_request, :user_id
+
+      def_delegator :@auth_request, :timestamp
+
+      def_delegator :@auth_request, :host
+
+      def_delegator :@auth_request, :request_signature
+
+      def_delegator :@auth_request, :content_hash
 
       include Mixlib::Authentication::SignedHeaderAuth
 
@@ -112,38 +129,6 @@ module Mixlib
             raise MissingAuthenticationHeader, "required authentication header #{header.to_s.upcase} missing"
           end
         end
-      end
-
-      def http_method
-        auth_request.http_method
-      end
-
-      def path
-        auth_request.path
-      end
-
-      def signing_description
-        auth_request.signing_description
-      end
-
-      def user_id
-        auth_request.user_id
-      end
-
-      def timestamp
-        auth_request.timestamp
-      end
-
-      def host
-        auth_request.host
-      end
-
-      def request_signature
-        auth_request.request_signature
-      end
-
-      def content_hash
-        auth_request.content_hash
       end
 
       def verify_signature
