@@ -25,6 +25,7 @@ require 'mixlib/authentication/digester'
 
 module Mixlib
   module Authentication
+
     module SignedHeaderAuth
       
       SIGNING_DESCRIPTION = 'version=1.0'
@@ -33,7 +34,7 @@ module Mixlib
       # with the simple OpenStruct extended with the auth functions
       class << self
         def signing_object(args={ })
-          OpenStruct.new(args).extend SignedHeaderAuth
+          SigningObject.new(args[:http_method], args[:path], args[:body], args[:host], args[:timestamp], args[:user_id], args[:file])
         end
       end
 
@@ -121,5 +122,10 @@ module Mixlib
       private :canonical_time, :canonical_path, :parse_signing_description, :digester
       
     end
+
+    class SigningObject < Struct.new(:http_method, :path, :body, :host, :timestamp, :user_id, :file)
+      include SignedHeaderAuth
+    end
+
   end
 end
