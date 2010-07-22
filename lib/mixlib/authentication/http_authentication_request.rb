@@ -29,6 +29,7 @@ module Mixlib
       def initialize(request)
         @request = request
         @request_signature = nil
+        validate_headers!
       end
 
       def headers

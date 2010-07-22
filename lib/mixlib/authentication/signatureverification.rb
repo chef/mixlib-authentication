@@ -79,12 +79,11 @@ module Mixlib
       def authenticate_request(user_secret, time_skew=(15*60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
 
-        @request           = request
         @user_secret       = user_secret
         @allowed_time_skew = time_skew # in seconds
 
         begin
-          @auth_request.validate_headers!
+          @auth_request
           
           #BUGBUG Not doing anything with the signing description yet [cb]          
           parse_signing_description
