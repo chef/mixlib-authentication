@@ -24,10 +24,11 @@ module Mixlib
 
       MANDATORY_HEADERS = [:x_ops_sign, :x_ops_userid, :x_ops_timestamp, :host, :x_ops_content_hash]
 
+      attr_reader :request
+
       def initialize(request)
         @request = request
         @request_signature = nil
-        assert_required_headers_present
       end
 
       def headers
@@ -70,15 +71,15 @@ module Mixlib
         @request_signature
       end
 
-      private
 
-      def assert_required_headers_present
+      def validate_headers!
         missing_headers = MANDATORY_HEADERS - headers.keys
         unless missing_headers.empty?
           missing_headers.map! { |h| h.to_s.upcase }
           raise MissingAuthenticationHeader, "missing required authentication header(s) '#{missing_headers.join("', '")}'"
         end
       end
+
 
     end
   end

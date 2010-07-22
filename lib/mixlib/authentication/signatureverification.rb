@@ -47,18 +47,25 @@ module Mixlib
 
       def_delegator :@auth_request, :content_hash
 
-      include Mixlib::Authentication::SignedHeaderAuth
+      def_delegator :@auth_request, :request
 
-      attr_reader :request
+      include Mixlib::Authentication::SignedHeaderAuth
 
       attr_reader :auth_request
 
-      def initialize
+      def initialize(request=nil)
+        @auth_request = HTTPAuthenticationRequest.new(request) if request
+
         @valid_signature, @valid_timestamp, @valid_content_hash = false, false, false
+
         @hashed_body = nil
-        @request, @auth_request = nil, nil
       end
 
+
+      def authenticate_user_request(request, user_lookup, time_skew=(15*60))
+        @auth_request = HTTPAuthenticationRequest.new(request)
+        authenticate_request(user_lookup, time_skew)
+      end
       # Takes the request, boils down the pieces we are interested in,
       # looks up the user, generates a signature, and compares to
       # the signature in the request
@@ -69,15 +76,15 @@ module Mixlib
       # X-Ops-Timestamp:
       # X-Ops-Content-Hash: 
       # X-Ops-Authorization-#{line_number}
-      def authenticate_user_request(request, user_lookup, time_skew=(15*60))
+      def authenticate_request(user_secret, time_skew=(15*60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
 
         @request           = request
-        @user_secret       = user_lookup
+        @user_secret       = user_secret
         @allowed_time_skew = time_skew # in seconds
 
         begin
-          @auth_request = HTTPAuthenticationRequest.new(request)
+          @auth_request.validate_headers!
           
           #BUGBUG Not doing anything with the signing description yet [cb]          
           parse_signing_description

@@ -156,6 +156,23 @@ describe "Mixlib::Authentication::SignatureVerification" do
     res.should_not be_nil
   end
 
+  it "shouldn't authenticate if an Authorization header is missing" do
+    headers = MERB_HEADERS.clone
+    headers.delete("HTTP_X_OPS_SIGN")
+
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
+    Time.stub!(:now).and_return(TIMESTAMP_OBJ)
+
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    lambda {auth_req.authenticate_user_request(mock_request, @user_private_key)}.should raise_error(Mixlib::Authentication::AuthenticationError)
+
+    auth_req.should_not be_a_valid_request
+    auth_req.should_not be_a_valid_timestamp
+    auth_req.should_not be_a_valid_signature
+    auth_req.should_not be_a_valid_content_hash
+  end
+
+
   it "shouldn't authenticate if Authorization header is wrong" do
     headers = MERB_HEADERS.clone
     headers["HTTP_X_OPS_CONTENT_HASH"] += "_"
