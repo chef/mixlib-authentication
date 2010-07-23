@@ -25,8 +25,7 @@ require 'mixlib/authentication/signedheaderauth'
 
 module Mixlib
   module Authentication
-    class SignatureResponse < Struct.new(:name)
-    end
+    SignatureResponse = Struct.new(:name)
 
     class SignatureVerification
       extend Forwardable
