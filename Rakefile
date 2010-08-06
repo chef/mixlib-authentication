@@ -5,7 +5,7 @@ require 'date'
 require 'spec/rake/spectask'
 
 GEM = "mixlib-authentication"
-GEM_VERSION = "1.1.4"
+GEM_VERSION = "1.1.5"
 AUTHOR = "Opscode, Inc."
 EMAIL = "info@opscode.com"
 HOMEPAGE = "http://www.opscode.com"
