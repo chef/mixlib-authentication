@@ -82,8 +82,7 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
   it "raises an error when not all required headers are given" do
     @merb_headers.delete("HTTP_X_OPS_SIGN")
     exception = Mixlib::Authentication::MissingAuthenticationHeader
-    auth_req = Mixlib::Authentication::HTTPAuthenticationRequest.new(@request)
-    lambda {auth_req.validate_headers!}.should raise_error(exception)
+    lambda{ Mixlib::Authentication::HTTPAuthenticationRequest.new(@request) }.should raise_error(exception)
   end
 
   it "extracts the path from the request" do
