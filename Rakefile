@@ -11,26 +11,6 @@ EMAIL = "info@opscode.com"
 HOMEPAGE = "http://www.opscode.com"
 SUMMARY = "Mixes in simple per-request authentication"
 
-spec = Gem::Specification.new do |s|
-  s.name = GEM
-  s.version = GEM_VERSION
-  s.platform = Gem::Platform::RUBY
-  s.has_rdoc = true
-  s.extra_rdoc_files = ["README.rdoc", "LICENSE", 'NOTICE']
-  s.summary = SUMMARY
-  s.description = s.summary
-  s.author = AUTHOR
-  s.email = EMAIL
-  s.homepage = HOMEPAGE
-  
-  # Uncomment this to add a dependency
-  s.add_dependency "mixlib-log"
-  
-  s.require_path = 'lib'
-  s.autorequire = GEM
-  s.files = %w(LICENSE README.rdoc Rakefile NOTICE) + Dir.glob("{lib,spec,features}/**/*")
-end
-
 task :default => :spec
 
 desc "Run specs"
@@ -39,8 +19,10 @@ RSpec::Core::RakeTask.new do |t|
   t.rspec_opts = %w(-fs --color)
 end
 
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.gem_spec = spec
+gem_spec = eval(File.read("mixlib-authentication.gemspec"))
+
+Rake::GemPackageTask.new(gem_spec) do |pkg|
+  pkg.gem_spec = gem_spec
 end
 
 desc "install the gem locally"
