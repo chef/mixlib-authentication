@@ -21,3 +21,4 @@ $:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "lib")) # li
 $:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "mixlib-log", "lib")) # mixlib-log/log
 
 require 'rubygems'
+require 'rspec'
