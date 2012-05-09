@@ -1,6 +1,7 @@
 #
 # Author:: Tim Hinderliter (<tim@opscode.com>)
 # Author:: Christopher Walters (<cw@opscode.com>)
+# Author:: Christopher Brown (<cb@opscode.com>)
 # Copyright:: Copyright (c) 2009, 2010 Opscode, Inc.
 # License:: Apache License, Version 2.0
 #
