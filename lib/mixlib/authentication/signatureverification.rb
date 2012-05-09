@@ -34,7 +34,7 @@ module Mixlib
 
       def_delegator :@auth_request, :path
 
-      def_delegator :auth_request, :signing_description
+      def_delegator :@auth_request, :signing_description
 
       def_delegator :@auth_request, :user_id
 
@@ -50,8 +50,6 @@ module Mixlib
 
       include Mixlib::Authentication::SignedHeaderAuth
 
-      attr_reader :auth_request
-
       def initialize(request=nil)
         @auth_request = HTTPAuthenticationRequest.new(request) if request
 
@@ -65,12 +63,13 @@ module Mixlib
         @auth_request = HTTPAuthenticationRequest.new(request)
         authenticate_request(user_lookup, time_skew)
       end
+
       # Takes the request, boils down the pieces we are interested in,
       # looks up the user, generates a signature, and compares to
       # the signature in the request
       # ====Headers
       #
-      # X-Ops-Sign: algorithm=sha256;version=1.0;
+      # X-Ops-Sign: algorithm=sha1;version=1.0;
       # X-Ops-UserId: <user_id>
       # X-Ops-Timestamp:
       # X-Ops-Content-Hash: 
@@ -82,15 +81,10 @@ module Mixlib
         @allowed_time_skew = time_skew # in seconds
 
         begin
-          @auth_request
-          
-          #BUGBUG Not doing anything with the signing description yet [cb]          
-          parse_signing_description
-
-          verify_signature
+          parts = parse_signing_description
+          verify_signature(parts[:algorithm], parts[:version])
           verify_timestamp
           verify_content_hash
-
         rescue StandardError=>se
           raise AuthenticationError,"Failed to authenticate user request. Check your client key and clock: #{se.message}", se.backtrace
         end
@@ -136,8 +130,8 @@ module Mixlib
         end
       end
 
-      def verify_signature
-        candidate_block = canonicalize_request
+      def verify_signature(algorithm, version)
+        candidate_block = canonicalize_request(algorithm, version)
         request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(request_signature))
         @valid_signature = (request_decrypted_block == candidate_block)
 

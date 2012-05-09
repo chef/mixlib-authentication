@@ -66,21 +66,11 @@ end
 #Mixlib::Authentication::Log.level :debug
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
-  it "should generate the correct string to sign and signature" do
-    # fix the timestamp, private key and body so we get the same answer back
-    # every time.
-    args = {
-      :body => BODY, 
-      :user_id => USER_ID,
-      :http_method => :post,
-      :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-      :file => MockFile.new,
-      :path => PATH,
-    }
 
+  it "should generate the correct string to sign and signature, version 1.0" do
     private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
       
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(args)
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
     
     expected_string_to_sign = <<EOS
 Method:POST
@@ -89,6 +79,32 @@ X-Ops-Content-Hash:#{HASHED_BODY}
 X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
 X-Ops-UserId:#{USER_ID}
 EOS
+
+    algorithm = 'sha1'
+    version = '1.0'
+    signing_obj.canonicalize_request(algorithm, version).should == expected_string_to_sign.chomp
+
+    # If you need to regenerate the constants in this test spec, print out
+    # the results of res.inspect and copy them as appropriate into the 
+    # the constants in this file.
+    res = signing_obj.sign(private_key, algorithm, version)
+    #$stderr.puts "res.inspect = #{res.inspect}"
+    res.should == EXPECTED_SIGN_RESULT_V1_0
+  end
+
+  it "should generate the correct string to sign and signature, version 1.1" do
+
+    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+      
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
+    
+    expected_string_to_sign = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH}
+X-Ops-Content-Hash:#{HASHED_BODY}
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{DIGESTED_USER_ID}
+EOS
     signing_obj.canonicalize_request.should == expected_string_to_sign.chomp
 
     # If you need to regenerate the constants in this test spec, print out
@@ -96,24 +112,49 @@ EOS
     # the constants in this file.
     res = signing_obj.sign(private_key)
     #$stderr.puts "res.inspect = #{res.inspect}"
-    res.should == EXPECTED_SIGN_RESULT
+    res.should == EXPECTED_SIGN_RESULT_V1_1
   end
 
-  it "should not choke when signing a request for a resource with a long name" do
+  it "should not choke when signing a request for a long user id with version 1.1" do
+    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+      
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
+
+    lambda { signing_obj.sign(private_key, 'sha1', '1.1') }.should_not raise_error
+  end
+
+  it "should choke when signing a request for a long user id with version 1.0" do
     args = {
       :body => BODY, 
-      :user_id => USER_ID,
+      :user_id => "A" * 200,
       :http_method => :put,
       :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
       :file => MockFile.new,
-      :path => PATH + "/nodes/#{"A" * 100}"}
+      :path => PATH + "/nodes/#{"A" * 250}"}
 
     private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
       
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(args)
-    
-    lambda { signing_obj.sign(private_key) }.should_not raise_error
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
+
+    lambda { signing_obj.sign(private_key, 'sha1', '1.0') }.should raise_error
   end
+
+  it "should choke when signing a request with a bad version" do
+    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+      
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
+
+    lambda { signing_obj.sign(private_key, 'sha1', 'poo') }.should raise_error
+  end
+
+  it "should choke when signing a request with a bad algorithm" do
+    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+      
+    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
+
+    lambda { signing_obj.sign(private_key, 'sha_poo', '1.1') }.should raise_error
+  end
+
 end
 
 describe "Mixlib::Authentication::SignatureVerification" do
@@ -221,6 +262,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
 end
 
 USER_ID = "spec-user"
+DIGESTED_USER_ID = Base64.encode64(Digest::SHA1.new.digest(USER_ID)).chomp
 BODY = "Spec Body"
 HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=" # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
 TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
@@ -228,25 +270,75 @@ TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
 PATH = "/organizations/clownco"
 HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
 
+V1_0_ARGS = {
+  :body => BODY, 
+  :user_id => USER_ID,
+  :http_method => :post,
+  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :file => MockFile.new,
+  :path => PATH
+}
+
+V1_1_ARGS = {
+  :body => BODY, 
+  :user_id => USER_ID,
+  :http_method => :post,
+  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :file => MockFile.new,
+  :path => PATH
+}
+
+LONG_PATH_LONG_USER_ARGS = {
+  :body => BODY, 
+  :user_id => "A" * 200,
+  :http_method => :put,
+  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :file => MockFile.new,
+  :path => PATH + "/nodes/#{"A" * 250}"
+}
+
 REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 
 # Content hash is ???TODO
 X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
+X_OPS_AUTHORIZATION_LINES_V1_0 = [
+"jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
+"NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc", 
+"3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O", 
+"IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy", 
+"9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0", 
+"utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="
+]
+
 X_OPS_AUTHORIZATION_LINES = [
-  "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
-  "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
-  "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
-  "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
-  "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
-  "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="
+"UfZD9dRz6rFu6LbP5Mo1oNHcWYxpNIcUfFCffJS1FQa0GtfU/vkt3/O5HuCM",
+"1wIFl/U0f5faH9EWpXWY5NwKR031Myxcabw4t4ZLO69CIh/3qx1XnjcZvt2w",
+"c2R9bx/43IWA/r8w8Q6decuu0f6ZlNheJeJhaYPI8piX/aH+uHBH8zTACZu8",
+"vMnl5MF3/OIlsZc8cemq6eKYstp8a8KYq9OmkB5IXIX6qVMJHA6fRvQEB/7j",
+"281Q7oI/O+lE8AmVyBbwruPb7Mp6s4839eYiOdjbDwFjYtbS3XgAjrHlaD7W",
+"FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A=="
 ]
 
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
-# if passed the BODY above.
-EXPECTED_SIGN_RESULT = {
+# if passed the BODY above, based on version
+
+EXPECTED_SIGN_RESULT_V1_0 = {
   "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
   "X-Ops-Userid"=>USER_ID,
-  "X-Ops-Sign"=>"version=1.0",
+  "X-Ops-Sign"=>"algorithm=sha1;version=1.0;",
+  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
+  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+}
+
+EXPECTED_SIGN_RESULT_V1_1 = {
+  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
+  "X-Ops-Userid"=>USER_ID,
+  "X-Ops-Sign"=>"algorithm=sha1;version=1.1;",
   "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES[0],
   "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES[1],
   "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES[2],
@@ -267,7 +359,7 @@ MERB_HEADERS = {
   # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
   # headers are in here to exercise that code path.
   "HTTP_HOST"=>"127.0.0.1", 
-  "HTTP_X_OPS_SIGN"=>"version=1.0",
+  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
   "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
   "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
   "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
@@ -298,7 +390,7 @@ PASSENGER_HEADERS = {
   # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
   # headers are in here to exercise that code path.
   "HTTP_HOST"=>"127.0.0.1", 
-  "HTTP_X_OPS_SIGN"=>"version=1.0",
+  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
   "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
   "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
   "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
