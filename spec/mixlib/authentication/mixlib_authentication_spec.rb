@@ -68,10 +68,7 @@ end
 describe "Mixlib::Authentication::SignedHeaderAuth" do
 
   it "should generate the correct string to sign and signature, version 1.0" do
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
       
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
-    
     expected_string_to_sign = <<EOS
 Method:POST
 Hashed Path:#{HASHED_CANONICAL_PATH}
@@ -82,22 +79,17 @@ EOS
 
     algorithm = 'sha1'
     version = '1.0'
-    signing_obj.canonicalize_request(algorithm, version).should == expected_string_to_sign.chomp
+    V1_0_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == expected_string_to_sign.chomp
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the 
     # the constants in this file.
-    res = signing_obj.sign(private_key, algorithm, version)
-    #$stderr.puts "res.inspect = #{res.inspect}"
+    res = V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version)
     res.should == EXPECTED_SIGN_RESULT_V1_0
   end
 
   it "should generate the correct string to sign and signature, version 1.1" do
 
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
-      
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
-    
     expected_string_to_sign = <<EOS
 Method:POST
 Hashed Path:#{HASHED_CANONICAL_PATH}
@@ -105,54 +97,30 @@ X-Ops-Content-Hash:#{HASHED_BODY}
 X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
 X-Ops-UserId:#{DIGESTED_USER_ID}
 EOS
-    signing_obj.canonicalize_request.should == expected_string_to_sign.chomp
+    V1_1_SIGNING_OBJECT.canonicalize_request.should == expected_string_to_sign.chomp
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the 
     # the constants in this file.
-    res = signing_obj.sign(private_key)
+    res = V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY)
     #$stderr.puts "res.inspect = #{res.inspect}"
     res.should == EXPECTED_SIGN_RESULT_V1_1
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
-      
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
-
-    lambda { signing_obj.sign(private_key, 'sha1', '1.1') }.should_not raise_error
+    lambda { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.1') }.should_not raise_error
   end
 
   it "should choke when signing a request for a long user id with version 1.0" do
-    args = {
-      :body => BODY, 
-      :user_id => "A" * 200,
-      :http_method => :put,
-      :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-      :file => MockFile.new,
-      :path => PATH + "/nodes/#{"A" * 250}"}
-
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
-      
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
-
-    lambda { signing_obj.sign(private_key, 'sha1', '1.0') }.should raise_error
+    lambda { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.should raise_error
   end
 
   it "should choke when signing a request with a bad version" do
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
-      
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
-
-    lambda { signing_obj.sign(private_key, 'sha1', 'poo') }.should raise_error
+    lambda { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.should raise_error
   end
 
   it "should choke when signing a request with a bad algorithm" do
-    private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
-      
-    signing_obj = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
-
-    lambda { signing_obj.sign(private_key, 'sha_poo', '1.1') }.should raise_error
+    lambda { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.should raise_error
   end
 
 end
@@ -160,7 +128,7 @@ end
 describe "Mixlib::Authentication::SignatureVerification" do
   
   before(:each) do
-    @user_private_key = OpenSSL::PKey::RSA.new(PRIVATE_KEY)
+    @user_private_key = PRIVATE_KEY
   end
 
   it "should authenticate a File-containing request - Merb" do
@@ -427,7 +395,7 @@ YQIDAQAB
 -----END PUBLIC KEY-----
 EOS
 
-PRIVATE_KEY = <<EOS
+PRIVATE_KEY_DATA = <<EOS
 -----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA0ueqo76MXuP6XqZBILFziH/9AI7C6PaN5W0dSvkr9yInyGHS
 z/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUBuAsnlAVQ1z0exDtIFFOyQCdR7iXm
@@ -456,3 +424,8 @@ YlkUQYXhy9JixmUUKtH+NXkKX7Lyc8XYw5ETr7JBT3ifs+G7HruDjVG78EJVojbd
 8uLA+DdQm5mg4vd1GTiSK65q/3EeoBlUaVor3HhLFki+i9qpT8CBsg==
 -----END RSA PRIVATE KEY-----
 EOS
+
+PRIVATE_KEY = OpenSSL::PKey::RSA.new(PRIVATE_KEY_DATA)
+V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
+V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
+LONG_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
