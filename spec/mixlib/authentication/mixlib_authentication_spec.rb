@@ -69,42 +69,24 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
 
   it "should generate the correct string to sign and signature, version 1.0" do
       
-    expected_string_to_sign = <<EOS
-Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH}
-X-Ops-Content-Hash:#{HASHED_BODY}
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{USER_ID}
-EOS
-
     algorithm = 'sha1'
     version = '1.0'
-    V1_0_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == expected_string_to_sign.chomp
+    V1_0_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == V1_0_CANONICAL_REQUEST
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the 
     # the constants in this file.
-    res = V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version)
-    res.should == EXPECTED_SIGN_RESULT_V1_0
+    V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version).should == EXPECTED_SIGN_RESULT_V1_0
   end
 
   it "should generate the correct string to sign and signature, version 1.1" do
 
-    expected_string_to_sign = <<EOS
-Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH}
-X-Ops-Content-Hash:#{HASHED_BODY}
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{DIGESTED_USER_ID}
-EOS
-    V1_1_SIGNING_OBJECT.canonicalize_request.should == expected_string_to_sign.chomp
+    V1_1_SIGNING_OBJECT.canonicalize_request.should == V1_1_CANONICAL_REQUEST
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the 
     # the constants in this file.
-    res = V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY)
-    #$stderr.puts "res.inspect = #{res.inspect}"
-    res.should == EXPECTED_SIGN_RESULT_V1_1
+    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_1
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
@@ -383,7 +365,7 @@ PASSENGER_HEADERS = {
 # generated with
 #   openssl genrsa -out private.pem 2048
 #   openssl rsa -in private.pem -out public.pem -pubout
-PUBLIC_KEY = <<EOS
+PUBLIC_KEY_DATA = <<EOS
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0ueqo76MXuP6XqZBILFz
 iH/9AI7C6PaN5W0dSvkr9yInyGHSz/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUB
@@ -426,6 +408,25 @@ YlkUQYXhy9JixmUUKtH+NXkKX7Lyc8XYw5ETr7JBT3ifs+G7HruDjVG78EJVojbd
 EOS
 
 PRIVATE_KEY = OpenSSL::PKey::RSA.new(PRIVATE_KEY_DATA)
+
+V1_0_CANONICAL_REQUEST_DATA = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH}
+X-Ops-Content-Hash:#{HASHED_BODY}
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{USER_ID}
+EOS
+V1_0_CANONICAL_REQUEST = V1_0_CANONICAL_REQUEST_DATA.chomp
+
+V1_1_CANONICAL_REQUEST_DATA = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH}
+X-Ops-Content-Hash:#{HASHED_BODY}
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{DIGESTED_USER_ID}
+EOS
+V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
+
 V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
 V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
 LONG_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
