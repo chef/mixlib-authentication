@@ -1,4 +1,4 @@
-MIXLIB_AUTHN_VERSION = '1.1.5'
+MIXLIB_AUTHN_VERSION = '1.2'
 
 Gem::Specification.new do |s|
   s.name = "mixlib-authentication"
