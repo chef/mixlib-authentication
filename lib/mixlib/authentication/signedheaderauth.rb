@@ -27,8 +27,9 @@ module Mixlib
   module Authentication
 
     module SignedHeaderAuth
-      
-      SIGNING_DESCRIPTION = 'version=1.0'
+
+      SUPPORTED_ALGORITHMS = ['sha1']
+      SUPPORTED_VERSIONS = ['1.0', '1.1']
 
       # This is a module meant to be mixed in but can be used standalone
       # with the simple OpenStruct extended with the auth functions
@@ -42,17 +43,17 @@ module Mixlib
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
-      def sign(private_key)
+      def sign(private_key, algorithm='sha1', version='1.1')
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
-          "X-Ops-Sign" => SIGNING_DESCRIPTION,
+          "X-Ops-Sign" => "algorithm=#{algorithm};version=#{version};",
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
           "X-Ops-Content-Hash" => hashed_body,
         }
 
-        string_to_sign = canonicalize_request
+        string_to_sign = canonicalize_request(algorithm, version)
         signature = Base64.encode64(private_key.private_encrypt(string_to_sign)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
@@ -98,8 +99,18 @@ module Mixlib
       # ====Parameters
       # 
       # 
-      def canonicalize_request
-        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{user_id}"
+      def canonicalize_request(algorithm='sha1', version='1.1')
+        raise AuthenticationError, "Bad algorithm '#{algorithm}' or version '#{version}'" unless SUPPORTED_ALGORITHMS.include?(algorithm) && SUPPORTED_VERSIONS.include?(version)
+
+        canonical_x_ops_user_id = case 
+                                  when version == "1.1"
+                                    digester.hash_string(user_id)
+                                  when version == "1.0"
+                                    user_id
+                                  else
+                                    user_id
+                                  end
+        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
       end
       
       # Parses signature version information, algorithm used, etc.
@@ -113,6 +124,7 @@ module Mixlib
           memo
         end
         Mixlib::Authentication::Log.debug "Parsed signing description: #{parts.inspect}"
+        parts
       end
       
       def digester
