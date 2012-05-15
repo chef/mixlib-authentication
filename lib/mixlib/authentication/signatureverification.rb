@@ -82,9 +82,15 @@ module Mixlib
 
         begin
           parts = parse_signing_description
+
+          # version 1.0 clients don't include their algorithm in the
+          # signing description, so default to sha1
+          parts[:algorithm] ||= 'sha1'
+
           verify_signature(parts[:algorithm], parts[:version])
           verify_timestamp
           verify_content_hash
+
         rescue StandardError=>se
           raise AuthenticationError,"Failed to authenticate user request. Check your client key and clock: #{se.message}", se.backtrace
         end

@@ -119,7 +119,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
     request_params["file"] =
       { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
 
-    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS, "")
+    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_1, "")
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -127,20 +127,11 @@ describe "Mixlib::Authentication::SignatureVerification" do
     res.should_not be_nil
   end
 
-  it "should authenticate a normal (post body) request - Merb" do
-    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
-
-    service = Mixlib::Authentication::SignatureVerification.new
-    res = service.authenticate_user_request(mock_request, @user_private_key)
-    res.should_not be_nil
-  end
-
-  it "should authenticate a File-containing request - Passenger" do
+  it "should authenticate a File-containing request from a v1.0 client - Passenger" do
     request_params = PASSENGER_REQUEST_PARAMS.clone
     request_params["tarball"] = MockFile.new
 
-    mock_request = MockRequest.new(PATH, request_params, PASSENGER_HEADERS, "")
+    mock_request = MockRequest.new(PATH, request_params, PASSENGER_HEADERS_V1_0, "")
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
@@ -148,8 +139,26 @@ describe "Mixlib::Authentication::SignatureVerification" do
     res.should_not be_nil
   end
 
+  it "should authenticate a normal (post body) request - Merb" do
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_1, BODY)
+    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    res.should_not be_nil
+  end
+
+  it "should authenticate a normal (post body) request from a v1.0 client - Merb" do
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_0, BODY)
+    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    res.should_not be_nil
+  end
+
   it "shouldn't authenticate if an Authorization header is missing" do
-    headers = MERB_HEADERS.clone
+    headers = MERB_HEADERS_V1_1.clone
     headers.delete("HTTP_X_OPS_SIGN")
 
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
@@ -166,7 +175,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
 
 
   it "shouldn't authenticate if Authorization header is wrong" do
-    headers = MERB_HEADERS.clone
+    headers = MERB_HEADERS_V1_1.clone
     headers["HTTP_X_OPS_CONTENT_HASH"] += "_"
 
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
@@ -183,7 +192,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 
   it "shouldn't authenticate if the timestamp is not within bounds" do
-    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS, BODY)
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_1, BODY)
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ - 1000)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
@@ -196,7 +205,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 
   it "shouldn't authenticate if the signature is wrong" do
-    headers =  MERB_HEADERS.dup
+    headers =  MERB_HEADERS_V1_1.dup
     headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
@@ -299,6 +308,16 @@ EXPECTED_SIGN_RESULT_V1_1 = {
   "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
 }
 
+OTHER_HEADERS = {
+  # An arbitrary sampling of non-HTTP_* headers are in here to
+  # exercise that code path.
+  "REMOTE_ADDR"=>"127.0.0.1", 
+  "PATH_INFO"=>"/organizations/local-test-org/cookbooks", 
+  "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks", 
+  "CONTENT_TYPE"=>"multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
+  "CONTENT_LENGTH"=>"394", 
+}
+
 # This is what will be in request.params for the Merb case.
 MERB_REQUEST_PARAMS = {
   "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks", 
@@ -306,9 +325,8 @@ MERB_REQUEST_PARAMS = {
 }
 
 # Tis is what will be in request.env for the Merb case.
-MERB_HEADERS = {
-  # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
-  # headers are in here to exercise that code path.
+MERB_HEADERS_V1_1 = {
+  # These are used by signatureverification.
   "HTTP_HOST"=>"127.0.0.1", 
   "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
   "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
@@ -321,14 +339,24 @@ MERB_HEADERS = {
   "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3], 
   "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4], 
   "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5], 
+}.merge(OTHER_HEADERS)
 
-  # Random sampling
-  "REMOTE_ADDR"=>"127.0.0.1", 
-  "PATH_INFO"=>"/organizations/local-test-org/cookbooks", 
-  "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks", 
-  "CONTENT_TYPE"=>"multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
-  "CONTENT_LENGTH"=>"394", 
-}
+# Tis is what will be in request.env for the Merb case.
+MERB_HEADERS_V1_0 = {
+  # These are used by signatureverification.
+  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_X_OPS_SIGN"=>"version=1.0",
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
+  "HTTP_X_OPS_USERID"=>USER_ID, 
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0], 
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1], 
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2], 
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3], 
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4], 
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5], 
+}.merge(OTHER_HEADERS)
 
 PASSENGER_REQUEST_PARAMS = {
   "action"=>"create",
@@ -337,9 +365,8 @@ PASSENGER_REQUEST_PARAMS = {
   "cookbook"=>"{\"category\":\"databases\"}",
 }
 
-PASSENGER_HEADERS = {
-  # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
-  # headers are in here to exercise that code path.
+PASSENGER_HEADERS_V1_1 = {
+  # These are used by signatureverification.
   "HTTP_HOST"=>"127.0.0.1", 
   "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
   "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
@@ -352,16 +379,23 @@ PASSENGER_HEADERS = {
   "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3], 
   "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4], 
   "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5], 
+}.merge(OTHER_HEADERS)
 
-  # Random set of other headers to exercirse the non- HTTP_ code path
-  "HTTP_ACCEPT"=>"application/json",
-  "SERVER_SOFTWARE"=>"Apache",
-  "SCRIPT_URI"=>"http://com-stg.opscode.com/api/v1/cookbooks",
-  "SCRIPT_NAME"=>"",
-  "SERVER_ADDR"=>"10.242.197.174",
-  "SERVER_NAME"=>"com-stg.opscode.com",
-  "DOCUMENT_ROOT"=>"/srv/opscode-community/current/public",
-}
+PASSENGER_HEADERS_V1_0 = {
+  # These are used by signatureverification.
+  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_X_OPS_SIGN"=>"version=1.0",
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
+  "HTTP_X_OPS_USERID"=>USER_ID, 
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0], 
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1], 
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2], 
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3], 
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4], 
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5], 
+}.merge(OTHER_HEADERS)
 
 # generated with
 #   openssl genrsa -out private.pem 2048

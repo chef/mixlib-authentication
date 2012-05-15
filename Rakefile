@@ -5,7 +5,7 @@ require 'date'
 require 'rspec/core/rake_task'
 
 GEM = "mixlib-authentication"
-GEM_VERSION = "1.2"
+GEM_VERSION = "1.2.1"
 AUTHOR = "Opscode, Inc."
 EMAIL = "info@opscode.com"
 HOMEPAGE = "http://www.opscode.com"
