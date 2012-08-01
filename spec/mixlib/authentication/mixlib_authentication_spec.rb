@@ -8,9 +8,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,26 +68,28 @@ end
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
 
-  it "should generate the correct string to sign and signature, version 1.0" do
-      
-    algorithm = 'sha1'
-    version = '1.0'
-    V1_0_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == V1_0_CANONICAL_REQUEST
+  # NOTE: Version 1.0 will be the default until Chef 11 is released.
+
+  it "should generate the correct string to sign and signature, version 1.0 (default)" do
+
+    V1_0_SIGNING_OBJECT.canonicalize_request.should == V1_0_CANONICAL_REQUEST
 
     # If you need to regenerate the constants in this test spec, print out
-    # the results of res.inspect and copy them as appropriate into the 
+    # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
-    V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version).should == EXPECTED_SIGN_RESULT_V1_0
+    V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_0
   end
 
   it "should generate the correct string to sign and signature, version 1.1" do
+    algorithm = 'sha1'
+    version = '1.1'
 
-    V1_1_SIGNING_OBJECT.canonicalize_request.should == V1_1_CANONICAL_REQUEST
+    V1_1_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == V1_1_CANONICAL_REQUEST
 
     # If you need to regenerate the constants in this test spec, print out
-    # the results of res.inspect and copy them as appropriate into the 
+    # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
-    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_1
+    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version).should == EXPECTED_SIGN_RESULT_V1_1
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
@@ -109,7 +111,7 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
 end
 
 describe "Mixlib::Authentication::SignatureVerification" do
-  
+
   before(:each) do
     @user_private_key = PRIVATE_KEY
   end
@@ -231,7 +233,7 @@ PATH = "/organizations/clownco"
 HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
 
 V1_0_ARGS = {
-  :body => BODY, 
+  :body => BODY,
   :user_id => USER_ID,
   :http_method => :post,
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
@@ -240,7 +242,7 @@ V1_0_ARGS = {
 }
 
 V1_1_ARGS = {
-  :body => BODY, 
+  :body => BODY,
   :user_id => USER_ID,
   :http_method => :post,
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
@@ -249,7 +251,7 @@ V1_1_ARGS = {
 }
 
 LONG_PATH_LONG_USER_ARGS = {
-  :body => BODY, 
+  :body => BODY,
   :user_id => "A" * 200,
   :http_method => :put,
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
@@ -263,10 +265,10 @@ REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
 X_OPS_AUTHORIZATION_LINES_V1_0 = [
 "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
-"NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc", 
-"3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O", 
-"IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy", 
-"9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0", 
+"NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
+"3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
+"IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
+"9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
 "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="
 ]
 
@@ -311,51 +313,51 @@ EXPECTED_SIGN_RESULT_V1_1 = {
 OTHER_HEADERS = {
   # An arbitrary sampling of non-HTTP_* headers are in here to
   # exercise that code path.
-  "REMOTE_ADDR"=>"127.0.0.1", 
-  "PATH_INFO"=>"/organizations/local-test-org/cookbooks", 
-  "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks", 
+  "REMOTE_ADDR"=>"127.0.0.1",
+  "PATH_INFO"=>"/organizations/local-test-org/cookbooks",
+  "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks",
   "CONTENT_TYPE"=>"multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
-  "CONTENT_LENGTH"=>"394", 
+  "CONTENT_LENGTH"=>"394",
 }
 
 # This is what will be in request.params for the Merb case.
 MERB_REQUEST_PARAMS = {
-  "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks", 
+  "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks",
   "organization_id"=>"local-test-org", "requesting_actor_id"=>REQUESTING_ACTOR_ID,
 }
 
 # Tis is what will be in request.env for the Merb case.
 MERB_HEADERS_V1_1 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_HOST"=>"127.0.0.1",
   "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
-  "HTTP_X_OPS_USERID"=>USER_ID, 
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0], 
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1], 
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2], 
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3], 
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4], 
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5], 
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5],
 }.merge(OTHER_HEADERS)
 
 # Tis is what will be in request.env for the Merb case.
 MERB_HEADERS_V1_0 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_HOST"=>"127.0.0.1",
   "HTTP_X_OPS_SIGN"=>"version=1.0",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
-  "HTTP_X_OPS_USERID"=>USER_ID, 
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0], 
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1], 
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2], 
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3], 
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4], 
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5], 
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
 }.merge(OTHER_HEADERS)
 
 PASSENGER_REQUEST_PARAMS = {
@@ -367,34 +369,34 @@ PASSENGER_REQUEST_PARAMS = {
 
 PASSENGER_HEADERS_V1_1 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_HOST"=>"127.0.0.1",
   "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
-  "HTTP_X_OPS_USERID"=>USER_ID, 
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0], 
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1], 
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2], 
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3], 
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4], 
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5], 
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5],
 }.merge(OTHER_HEADERS)
 
 PASSENGER_HEADERS_V1_0 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1", 
+  "HTTP_HOST"=>"127.0.0.1",
   "HTTP_X_OPS_SIGN"=>"version=1.0",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601, 
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH, 
-  "HTTP_X_OPS_USERID"=>USER_ID, 
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0], 
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1], 
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2], 
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3], 
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4], 
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5], 
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
 }.merge(OTHER_HEADERS)
 
 # generated with
