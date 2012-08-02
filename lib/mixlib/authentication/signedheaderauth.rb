@@ -80,7 +80,7 @@ module Mixlib
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
-      def sign(private_key, sign_algorithm=DEFAULT_SIGN_ALGORITHM, sign_version=DEFAULT_PROTO_VERSION)
+      def sign(private_key, sign_algorithm=algorithm, sign_version=proto_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
@@ -136,12 +136,12 @@ module Mixlib
       # ====Parameters
       #
       #
-      def canonicalize_request(algorithm=DEFAULT_SIGN_ALGORITHM, version=DEFAULT_PROTO_VERSION)
-        unless SUPPORTED_ALGORITHMS.include?(algorithm) && SUPPORTED_VERSIONS.include?(version)
-          raise AuthenticationError, "Bad algorithm '#{algorithm}' (allowed: #{SUPPORTED_ALGORITHMS.inspect}) or version '#{version}' (allowed: #{SUPPORTED_VERSIONS.inspect})"
+      def canonicalize_request(sign_algorithm=algorithm, sign_version=proto_version)
+        unless SUPPORTED_ALGORITHMS.include?(sign_algorithm) && SUPPORTED_VERSIONS.include?(sign_version)
+          raise AuthenticationError, "Bad algorithm '#{sign_algorithm}' (allowed: #{SUPPORTED_ALGORITHMS.inspect}) or version '#{sign_version}' (allowed: #{SUPPORTED_VERSIONS.inspect})"
         end
 
-        canonical_x_ops_user_id = canonicalize_user_id(user_id, version)
+        canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version)
         "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
       end
 
@@ -186,7 +186,7 @@ module Mixlib
       include SignedHeaderAuth
 
       def proto_version
-        self[:proto_version] or DEFAULT_PROTO_VERSION
+        (self[:proto_version] or DEFAULT_PROTO_VERSION).to_s
       end
     end
 
