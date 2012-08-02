@@ -81,9 +81,6 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   end
 
   it "should generate the correct string to sign and signature, version 1.1" do
-    #algorithm = 'sha1'
-    #version = '1.1'
-
     V1_1_SIGNING_OBJECT.proto_version.should == "1.1"
     V1_1_SIGNING_OBJECT.canonicalize_request.should == V1_1_CANONICAL_REQUEST
 
@@ -91,6 +88,20 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
     V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_1
+  end
+
+  it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
+    algorithm = 'sha1'
+    version = '1.1'
+
+    V1_1_SIGNING_OBJECT.proto_version = "1.0"
+    V1_1_SIGNING_OBJECT.proto_version.should == "1.0"
+    V1_1_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == V1_1_CANONICAL_REQUEST
+
+    # If you need to regenerate the constants in this test spec, print out
+    # the results of res.inspect and copy them as appropriate into the
+    # the constants in this file.
+    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version).should == EXPECTED_SIGN_RESULT_V1_1
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
