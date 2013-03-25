@@ -79,7 +79,10 @@ module Mixlib
       # Build the canonicalized request based on the method, other headers, etc.
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
-      # keypair<OpenSSL::PKey::RSA>:: user's RSA keypair.
+      # keypair<OpenSSL::PKey::RSA>:: user's RSA keypair. The OpenSSL::PKey::RSA
+      # container can either be filled with a private/public keypair or just a
+      # public key. From x-ops protocol version 1.2 on the sign method will look
+      # out to sign the request via a ssh-agent, if only a public key is present.
       def sign(keypair, sign_algorithm=algorithm, sign_version=proto_version)
         header_hash = {
           "X-Ops-Sign" => "algorithm=#{sign_algorithm};version=#{sign_version};",
