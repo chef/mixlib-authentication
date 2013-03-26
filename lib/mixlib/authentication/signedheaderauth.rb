@@ -22,6 +22,7 @@ require 'base64'
 require 'digest/sha1'
 require 'mixlib/authentication'
 require 'mixlib/authentication/digester'
+require 'net/ssh'
 
 module Mixlib
   module Authentication
