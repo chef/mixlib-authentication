@@ -1,4 +1,4 @@
-MIXLIB_AUTHN_VERSION = '1.3.0'
+MIXLIB_AUTHN_VERSION = '1.4.0'
 
 Gem::Specification.new do |s|
   s.name = "mixlib-authentication"
@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   
   # Uncomment this to add a dependency
   s.add_dependency "mixlib-log"
+  s.add_dependency "net-ssh"
   
   s.require_path = 'lib'
   s.files = %w(LICENSE README.rdoc Rakefile NOTICE) + Dir.glob("{lib,spec}/**/*")
