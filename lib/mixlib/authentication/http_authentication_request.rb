@@ -67,7 +67,7 @@ module Mixlib
       def request_signature
         unless @request_signature
           @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }
-            .sort { |x,y| x.to_s[/d+/].to_i <=> y.to_s[/d+/].to_i}.map { |i| i[1] }.join("\n")
+            .sort { |x,y| x.to_s[/\d+/].to_i <=> y.to_s[/\d+/].to_i }.map { |i| i[1] }.join("\n")
           Mixlib::Authentication::Log.debug "Reconstituted (user-supplied) request signature: #{@request_signature}"
         end
         @request_signature
