@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rubygems/specification'
 require 'date'
 require 'rspec/core/rake_task'
@@ -19,11 +19,7 @@ RSpec::Core::RakeTask.new do |t|
   t.rspec_opts = %w(-fs --color)
 end
 
-gem_spec = eval(File.read("mixlib-authentication.gemspec"))
-
-Rake::GemPackageTask.new(gem_spec) do |pkg|
-  pkg.gem_spec = gem_spec
-end
+GEMSPEC = eval(File.read("mixlib-authentication.gemspec"))
 
 desc "install the gem locally"
 task :install => [:package] do

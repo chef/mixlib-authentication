@@ -137,14 +137,28 @@ module Mixlib
       end
 
       def verify_signature(algorithm, version)
-        candidate_block = canonicalize_request(algorithm, version)
-        request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(request_signature))
-        @valid_signature = (request_decrypted_block == candidate_block)
+        expected_block = canonicalize_request(algorithm, version)
+        signature = Base64.decode64(request_signature)
 
-        # Keep the debug messages lined up so it's easy to scan them
         Mixlib::Authentication::Log.debug("Verifying request signature:")
-        Mixlib::Authentication::Log.debug(" Expected Block is: '#{candidate_block}'")
-        Mixlib::Authentication::Log.debug("Decrypted block is: '#{request_decrypted_block}'")
+
+        if version <= '1.1'
+          request_decrypted_block = @user_secret.public_decrypt(signature)
+          @valid_signature = (request_decrypted_block == expected_block)
+
+          Mixlib::Authentication::Log.debug(" Expected Block is: '#{expected_block}'")
+          Mixlib::Authentication::Log.debug("Decrypted block is: '#{request_decrypted_block}'")
+        elsif version == '1.2'
+          case algorithm
+          when 'sha1'
+            @valid_signature = @user_secret.verify(OpenSSL::Digest::SHA1.new, signature, expected_block)
+          else
+            raise AuthenticationError, "Bad algorithm '#{sign_algorithm}' (allowed: #{SUPPORTED_ALGORITHMS.inspect})"
+          end
+        else
+          raise AuthenticationError, "Bad version '#{sign_version}' (allowed: #{SUPPORTED_VERSIONS.inspect})"
+        end
+
         Mixlib::Authentication::Log.debug("Signatures match? : '#{@valid_signature}'")
 
         @valid_signature
