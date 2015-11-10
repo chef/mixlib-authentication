@@ -205,11 +205,11 @@ module Mixlib
           # we hash the body.
           if file_param
             Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
-            @hashed_body = digester.hash_file(file_param)
+            @hashed_body = digester.hash_file(Digest::SHA1, file_param)
           else
             body = request.raw_post
             Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
-            @hashed_body = digester.hash_string(body)
+            @hashed_body = digester.hash_string(Digest::SHA1, body)
           end
         end
         @hashed_body

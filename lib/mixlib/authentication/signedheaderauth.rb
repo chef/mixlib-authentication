@@ -134,7 +134,7 @@ module Mixlib
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
-        @hashed_body ||= (self.file && self.file.respond_to?(:read)) ? digester.hash_file(self.file) : digester.hash_string(self.body)
+        @hashed_body ||= (self.file && self.file.respond_to?(:read)) ? digester.hash_file(Digest::SHA1, self.file) : digester.hash_string(Digest::SHA1, self.body)
       end
 
       # Takes HTTP request method & headers and creates a canonical form
@@ -149,13 +149,13 @@ module Mixlib
         end
 
         canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version)
-        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
+        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(Digest::SHA1, canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
       end
 
       def canonicalize_user_id(user_id, proto_version)
         case proto_version
         when "1.1"
-          digester.hash_string(user_id)
+          digester.hash_string(Digest::SHA1, user_id)
         when "1.0"
           user_id
         else
