@@ -16,7 +16,7 @@ task :default => :spec
 desc "Run specs"
 RSpec::Core::RakeTask.new do |t|
   t.pattern = 'spec/**/*_spec.rb'
-  t.rspec_opts = %w(--color)
+  t.rspec_opts = %w(--format documentation --color)
 end
 
 gem_spec = eval(File.read("mixlib-authentication.gemspec"))
