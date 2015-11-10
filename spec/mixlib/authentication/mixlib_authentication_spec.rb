@@ -176,7 +176,8 @@ describe "Mixlib::Authentication::SignatureVerification" do
     headers.delete("HTTP_X_OPS_SIGN")
 
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
-    Time.stub!(:now).and_return(TIMESTAMP_OBJ)
+    allow(Time).to receive(:now).and_return(TIMESTAMP_OBJ)
+    #Time.stub!(:now).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     lambda {auth_req.authenticate_user_request(mock_request, @user_private_key)}.should raise_error(Mixlib::Authentication::AuthenticationError)

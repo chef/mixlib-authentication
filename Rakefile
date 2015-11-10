@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rubygems/specification'
 require 'date'
 require 'rspec/core/rake_task'
@@ -16,12 +16,12 @@ task :default => :spec
 desc "Run specs"
 RSpec::Core::RakeTask.new do |t|
   t.pattern = 'spec/**/*_spec.rb'
-  t.rspec_opts = %w(-fs --color)
+  t.rspec_opts = %w(--color)
 end
 
 gem_spec = eval(File.read("mixlib-authentication.gemspec"))
 
-Rake::GemPackageTask.new(gem_spec) do |pkg|
+Gem::PackageTask.new(gem_spec) do |pkg|
   pkg.gem_spec = gem_spec
 end
 
