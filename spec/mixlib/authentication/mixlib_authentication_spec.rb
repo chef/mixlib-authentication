@@ -72,22 +72,22 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
 
   it "should generate the correct string to sign and signature, version 1.0 (default)" do
 
-    V1_0_SIGNING_OBJECT.canonicalize_request.should == V1_0_CANONICAL_REQUEST
+    expect(V1_0_SIGNING_OBJECT.canonicalize_request).to eq(V1_0_CANONICAL_REQUEST)
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
-    V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_0
+    expect(V1_0_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_0)
   end
 
   it "should generate the correct string to sign and signature, version 1.1" do
-    V1_1_SIGNING_OBJECT.proto_version.should == "1.1"
-    V1_1_SIGNING_OBJECT.canonicalize_request.should == V1_1_CANONICAL_REQUEST
+    expect(V1_1_SIGNING_OBJECT.proto_version).to eq("1.1")
+    expect(V1_1_SIGNING_OBJECT.canonicalize_request).to eq(V1_1_CANONICAL_REQUEST)
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
-    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY).should == EXPECTED_SIGN_RESULT_V1_1
+    expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_1)
   end
 
   it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
@@ -95,29 +95,29 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     version = '1.1'
 
     V1_1_SIGNING_OBJECT.proto_version = "1.0"
-    V1_1_SIGNING_OBJECT.proto_version.should == "1.0"
-    V1_1_SIGNING_OBJECT.canonicalize_request(algorithm, version).should == V1_1_CANONICAL_REQUEST
+    expect(V1_1_SIGNING_OBJECT.proto_version).to eq("1.0")
+    expect(V1_1_SIGNING_OBJECT.canonicalize_request(algorithm, version)).to eq(V1_1_CANONICAL_REQUEST)
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
-    V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version).should == EXPECTED_SIGN_RESULT_V1_1
+    expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version)).to eq(EXPECTED_SIGN_RESULT_V1_1)
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
-    lambda { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.1') }.should_not raise_error
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.1') }.not_to raise_error
   end
 
   it "should choke when signing a request for a long user id with version 1.0" do
-    lambda { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.should raise_error
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.to raise_error
   end
 
   it "should choke when signing a request with a bad version" do
-    lambda { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.should raise_error
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.to raise_error
   end
 
   it "should choke when signing a request with a bad algorithm" do
-    lambda { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.should raise_error
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.to raise_error
   end
 
 end
@@ -134,11 +134,11 @@ describe "Mixlib::Authentication::SignatureVerification" do
       { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
 
     mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_1, "")
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
     res = service.authenticate_user_request(mock_request, @user_private_key)
-    res.should_not be_nil
+    expect(res).not_to be_nil
   end
 
   it "should authenticate a File-containing request from a v1.0 client - Passenger" do
@@ -146,29 +146,29 @@ describe "Mixlib::Authentication::SignatureVerification" do
     request_params["tarball"] = MockFile.new
 
     mock_request = MockRequest.new(PATH, request_params, PASSENGER_HEADERS_V1_0, "")
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     res = auth_req.authenticate_user_request(mock_request, @user_private_key)
-    res.should_not be_nil
+    expect(res).not_to be_nil
   end
 
   it "should authenticate a normal (post body) request - Merb" do
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_1, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
     res = service.authenticate_user_request(mock_request, @user_private_key)
-    res.should_not be_nil
+    expect(res).not_to be_nil
   end
 
   it "should authenticate a normal (post body) request from a v1.0 client - Merb" do
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_0, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
     res = service.authenticate_user_request(mock_request, @user_private_key)
-    res.should_not be_nil
+    expect(res).not_to be_nil
   end
 
   it "shouldn't authenticate if an Authorization header is missing" do
@@ -180,12 +180,12 @@ describe "Mixlib::Authentication::SignatureVerification" do
     #Time.stub!(:now).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
-    lambda {auth_req.authenticate_user_request(mock_request, @user_private_key)}.should raise_error(Mixlib::Authentication::AuthenticationError)
+    expect {auth_req.authenticate_user_request(mock_request, @user_private_key)}.to raise_error(Mixlib::Authentication::AuthenticationError)
 
-    auth_req.should_not be_a_valid_request
-    auth_req.should_not be_a_valid_timestamp
-    auth_req.should_not be_a_valid_signature
-    auth_req.should_not be_a_valid_content_hash
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).not_to be_a_valid_timestamp
+    expect(auth_req).not_to be_a_valid_signature
+    expect(auth_req).not_to be_a_valid_content_hash
   end
 
 
@@ -194,44 +194,44 @@ describe "Mixlib::Authentication::SignatureVerification" do
     headers["HTTP_X_OPS_CONTENT_HASH"] += "_"
 
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     res = auth_req.authenticate_user_request(mock_request, @user_private_key)
-    res.should be_nil
+    expect(res).to be_nil
 
-    auth_req.should_not be_a_valid_request
-    auth_req.should be_a_valid_timestamp
-    auth_req.should be_a_valid_signature
-    auth_req.should_not be_a_valid_content_hash
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).to be_a_valid_timestamp
+    expect(auth_req).to be_a_valid_signature
+    expect(auth_req).not_to be_a_valid_content_hash
   end
 
   it "shouldn't authenticate if the timestamp is not within bounds" do
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_1, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ - 1000)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ - 1000)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     res = auth_req.authenticate_user_request(mock_request, @user_private_key)
-    res.should be_nil
-    auth_req.should_not be_a_valid_request
-    auth_req.should_not be_a_valid_timestamp
-    auth_req.should be_a_valid_signature
-    auth_req.should be_a_valid_content_hash
+    expect(res).to be_nil
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).not_to be_a_valid_timestamp
+    expect(auth_req).to be_a_valid_signature
+    expect(auth_req).to be_a_valid_content_hash
   end
 
   it "shouldn't authenticate if the signature is wrong" do
     headers =  MERB_HEADERS_V1_1.dup
     headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
-    Time.should_receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     res = auth_req.authenticate_user_request(mock_request, @user_private_key)
-    res.should be_nil
-    auth_req.should_not be_a_valid_request
-    auth_req.should_not be_a_valid_signature
-    auth_req.should be_a_valid_timestamp
-    auth_req.should be_a_valid_content_hash
+    expect(res).to be_nil
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).not_to be_a_valid_signature
+    expect(auth_req).to be_a_valid_timestamp
+    expect(auth_req).to be_a_valid_content_hash
   end
 
 end
