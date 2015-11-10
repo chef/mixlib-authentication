@@ -76,41 +76,41 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
                 :x_ops_authorization_4=>"IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
                 :x_ops_authorization_5=>"9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
                 :x_ops_authorization_6=>"utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="}
-    @http_authentication_request.headers.should == expected
+    expect(@http_authentication_request.headers).to eq(expected)
   end
 
   it "raises an error when not all required headers are given" do
     @merb_headers.delete("HTTP_X_OPS_SIGN")
     exception = Mixlib::Authentication::MissingAuthenticationHeader
-    lambda{ Mixlib::Authentication::HTTPAuthenticationRequest.new(@request) }.should raise_error(exception)
+    expect{ Mixlib::Authentication::HTTPAuthenticationRequest.new(@request) }.to raise_error(exception)
   end
 
   it "extracts the path from the request" do
-    @http_authentication_request.path.should == '/nodes'
+    expect(@http_authentication_request.path).to eq('/nodes')
   end
 
   it "extracts the request method from the request" do
-    @http_authentication_request.http_method.should == 'POST'
+    expect(@http_authentication_request.http_method).to eq('POST')
   end
 
   it "extracts the signing description from the request headers" do
-    @http_authentication_request.signing_description.should == 'version=1.0'
+    expect(@http_authentication_request.signing_description).to eq('version=1.0')
   end
 
   it "extracts the user_id from the request headers" do
-    @http_authentication_request.user_id.should == 'spec-user'
+    expect(@http_authentication_request.user_id).to eq('spec-user')
   end
 
   it "extracts the timestamp from the request headers" do
-    @http_authentication_request.timestamp.should == "2009-01-01T12:00:00Z"
+    expect(@http_authentication_request.timestamp).to eq("2009-01-01T12:00:00Z")
   end
 
   it "extracts the host from the request headers" do
-    @http_authentication_request.host.should == "127.0.0.1"
+    expect(@http_authentication_request.host).to eq("127.0.0.1")
   end
 
   it "extracts the content hash from the request headers" do
-    @http_authentication_request.content_hash.should == "DFteJZPVv6WKdQmMqZUQUumUyRs="
+    expect(@http_authentication_request.content_hash).to eq("DFteJZPVv6WKdQmMqZUQUumUyRs=")
   end
 
   it "rebuilds the request signature from the headers" do
@@ -122,7 +122,7 @@ IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy
 9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0
 utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==
 SIG
-    @http_authentication_request.request_signature.should == expected.chomp
+    expect(@http_authentication_request.request_signature).to eq(expected.chomp)
   end
 
 end

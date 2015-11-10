@@ -65,7 +65,14 @@ module Mixlib
       # These parameters are accepted but not used in the computation of the signature.
       # * `:host`: The host part of the URI
       def self.signing_object(args={ })
-        SigningObject.new(args[:http_method], args[:path], args[:body], args[:host], args[:timestamp], args[:user_id], args[:file], args[:proto_version])
+        SigningObject.new(args[:http_method],
+                          args[:path],
+                          args[:body],
+                          args[:host],
+                          args[:timestamp],
+                          args[:user_id],
+                          args[:file],
+                          args[:proto_version])
       end
 
       def algorithm
