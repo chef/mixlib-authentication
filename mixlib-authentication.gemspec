@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
       Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject {|f| File.directory?(f) }
 
   %w(rspec-core rspec-expectations rspec-mocks).each { |gem| s.add_dependency gem, "~> 3.2" }
+  s.add_development_dependency "rake", "~> 10.4"
 end
