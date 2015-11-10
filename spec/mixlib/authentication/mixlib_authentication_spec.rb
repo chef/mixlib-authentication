@@ -109,15 +109,15 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   end
 
   it "should choke when signing a request for a long user id with version 1.0" do
-    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.to raise_error
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.to raise_error(OpenSSL::PKey::RSAError)
   end
 
   it "should choke when signing a request with a bad version" do
-    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.to raise_error
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
   it "should choke when signing a request with a bad algorithm" do
-    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.to raise_error
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
 end
