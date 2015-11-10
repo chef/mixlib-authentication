@@ -1,2 +1,4 @@
 pkg/
 *.swp
+
+Gemfile.lock
