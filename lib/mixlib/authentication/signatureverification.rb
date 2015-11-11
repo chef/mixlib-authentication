@@ -171,7 +171,7 @@ module Mixlib
 
       # The request signature is based on any file attached, if any. Otherwise
       # it's based on the body of the request.
-      def hashed_body
+      def hashed_body(digest=Digest::SHA1)
         unless @hashed_body
           # TODO: tim: 2009-112-28: It'd be nice to remove this special case, and
           # always hash the entire request body. In the file case it would just be
@@ -205,11 +205,11 @@ module Mixlib
           # we hash the body.
           if file_param
             Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
-            @hashed_body = digester.hash_file(Digest::SHA1, file_param)
+            @hashed_body = digester.hash_file(digest, file_param)
           else
             body = request.raw_post
             Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
-            @hashed_body = digester.hash_string(Digest::SHA1, body)
+            @hashed_body = digester.hash_string(digest, body)
           end
         end
         @hashed_body
