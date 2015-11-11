@@ -29,8 +29,14 @@ module Mixlib
     module SignedHeaderAuth
 
       NULL_ARG = Object.new
+
       SUPPORTED_ALGORITHMS = ['sha1'].freeze
       SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
+
+      ALGORITHMS_FOR_VERSION = {
+        '1.0' => ['sha1'],
+        '1.1' => ['sha1'],
+      }.freeze()
 
       DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
       DEFAULT_PROTO_VERSION = '1.0'.freeze
@@ -88,13 +94,14 @@ module Mixlib
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
       def sign(private_key, sign_algorithm=algorithm, sign_version=proto_version)
+        digest = validate_sign_version_digest!(sign_version, sign_algorithm)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
           "X-Ops-Sign" => "algorithm=#{sign_algorithm};version=#{sign_version};",
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
-          "X-Ops-Content-Hash" => hashed_body,
+          "X-Ops-Content-Hash" => hashed_body(digest),
         }
 
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
@@ -108,6 +115,28 @@ module Mixlib
         Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'\nHeader hash: #{header_hash.inspect}"
 
         header_hash
+      end
+
+      def validate_sign_version_digest!(sign_version, sign_algorithm)
+        if ALGORITHMS_FOR_VERSION[sign_version].nil?
+          raise AuthenticationError,
+            "Unsupported version '#{sign_version}'"
+        end
+
+        if !ALGORITHMS_FOR_VERSION[sign_version].include?(sign_algorithm)
+          raise AuthenticationError,
+            "Unsupported version '#{sign_version}'"
+        end
+
+        case sign_algorithm
+        when 'sha1'
+          Digest::SHA1
+        when 'sha256'
+          Digest::SHA256
+        else
+          # This case should happen
+          raise "Unknown algorithm #{sign_algorithm}"
+        end
       end
 
       # Build the canonicalized time based on utc & iso8601
@@ -128,13 +157,27 @@ module Mixlib
         p.length > 1 ? p.chomp('/') : p
       end
 
-      def hashed_body
+      def hashed_body(digest=Digest::SHA1)
+        # This is weird. sign() is called with the digest type and signing
+        # version. These are also expected to be properties of the object.
+        # Hence, we're going to assume the one that is passed to sign is
+        # the correct one and needs to passed through all the functions
+        # that do any sort of digest.
+        if @hashed_body_digest != nil && @hashed_body_digest != digest
+          raise "hashed_body must always be called with the same digest"
+        else
+          @hashed_body_digest = digest
+        end
         # Hash the file object if it was passed in, otherwise hash based on
         # the body.
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
-        @hashed_body ||= (self.file && self.file.respond_to?(:read)) ? digester.hash_file(Digest::SHA1, self.file) : digester.hash_string(Digest::SHA1, self.body)
+        @hashed_body ||= if self.file && self.file.respond_to?(:read)
+                           digester.hash_file(digest, self.file)
+                         else
+                           digester.hash_string(digest, self.body)
+                         end
       end
 
       # Takes HTTP request method & headers and creates a canonical form
@@ -144,15 +187,19 @@ module Mixlib
       #
       #
       def canonicalize_request(sign_algorithm=algorithm, sign_version=proto_version)
-        unless SUPPORTED_ALGORITHMS.include?(sign_algorithm) && SUPPORTED_VERSIONS.include?(sign_version)
-          raise AuthenticationError, "Bad algorithm '#{sign_algorithm}' (allowed: #{SUPPORTED_ALGORITHMS.inspect}) or version '#{sign_version}' (allowed: #{SUPPORTED_VERSIONS.inspect})"
-        end
 
-        canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version)
-        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(Digest::SHA1, canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
+        digest = validate_sign_version_digest!(sign_version, sign_algorithm)
+        canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version, digest)
+        [
+          "Method:#{http_method.to_s.upcase}",
+          "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+          "X-Ops-Content-Hash:#{hashed_body(digest)}",
+          "X-Ops-Timestamp:#{canonical_time}",
+          "X-Ops-UserId:#{canonical_x_ops_user_id}"
+        ].join("\n")
       end
 
-      def canonicalize_user_id(user_id, proto_version)
+      def canonicalize_user_id(user_id, proto_version, digest=Digest::SHA1)
         case proto_version
         when "1.1"
           digester.hash_string(Digest::SHA1, user_id)
