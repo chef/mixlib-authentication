@@ -90,6 +90,28 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_1)
   end
 
+  it "should generate the correct string to sign and signature for version 1.3 with SHA1" do
+    expect(V1_3_SHA1_SIGNING_OBJECT.proto_version).to eq("1.3")
+    expect(V1_3_SHA1_SIGNING_OBJECT.canonicalize_request).to eq(V1_3_SHA1_CANONICAL_REQUEST)
+
+    # If you need to regenerate the constants in this test spec, print out
+    # the results of res.inspect and copy them as appropriate into the
+    # the constants in this file.
+    expect(V1_3_SHA1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA1)
+  end
+
+  it "should generate the correct string to sign and signature for version 1.3 with SHA256" do
+    expect(V1_3_SHA256_SIGNING_OBJECT.proto_version).to eq("1.3")
+    expect(V1_3_SHA256_SIGNING_OBJECT.algorithm).to eq("sha256")
+    expect(V1_3_SHA256_SIGNING_OBJECT.canonicalize_request).to eq(V1_3_SHA256_CANONICAL_REQUEST)
+
+    # If you need to regenerate the constants in this test spec, print out
+    # the results of res.inspect and copy them as appropriate into the
+    # the constants in this file.
+    expect(V1_3_SHA256_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
+  end
+
+
   it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
     algorithm = 'sha1'
     version = '1.1'
@@ -238,12 +260,15 @@ end
 
 USER_ID = "spec-user"
 DIGESTED_USER_ID = Base64.encode64(Digest::SHA1.new.digest(USER_ID)).chomp
+DIGESTED_USER_ID_SHA256 = Base64.encode64(Digest::SHA256.new.digest(USER_ID)).chomp
 BODY = "Spec Body"
 HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=" # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
+HASHED_BODY_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho="
 TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
 TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
 PATH = "/organizations/clownco"
 HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
+HASHED_CANONICAL_PATH_SHA256 = "Z3EsTMw/UBNY9n+q+WBWTJmeVg8hQFbdFzVWRxW4dOA="
 
 V1_0_ARGS = {
   :body => BODY,
@@ -264,6 +289,28 @@ V1_1_ARGS = {
   :proto_version => 1.1
 }
 
+V1_3_ARGS_SHA1 = {
+  :body => BODY,
+  :user_id => USER_ID,
+  :http_method => :post,
+  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :file => MockFile.new,
+  :path => PATH,
+  :proto_version => '1.3',
+  :signing_algorithm => 'sha1'
+}
+
+V1_3_ARGS_SHA256 = {
+  :body => BODY,
+  :user_id => USER_ID,
+  :http_method => :post,
+  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :file => MockFile.new,
+  :path => PATH,
+  :proto_version => '1.3'
+  # This defaults to sha256
+}
+
 LONG_PATH_LONG_USER_ARGS = {
   :body => BODY,
   :user_id => "A" * 200,
@@ -277,6 +324,8 @@ REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 
 # Content hash is ???TODO
 X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
+X_OPS_CONTENT_HASH_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho="
+
 X_OPS_AUTHORIZATION_LINES_V1_0 = [
 "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
 "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
@@ -295,6 +344,23 @@ X_OPS_AUTHORIZATION_LINES = [
 "FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A=="
 ]
 
+X_OPS_AUTHORIZATION_LINES_V1_3_SHA1 = [
+  "wVDg3X99mxxQr1Ox/KJc+zy7b/mPX/M1+jsta5Qht43UhkNq3spRqup8vP26",
+  "TT/0pSSDnJ//wlYnxrEP+izgRGO3n4rwLQNM/ePB+dOXSiOwLDJOl7yChUde",
+  "qrxX6xsaIps6+Di/DRQ1jqLBO5KHkt8Ndc6KUeyV4Dbz/O4+8VIJw0j22Sne",
+  "6kWG648yVrS/ODeHfPGw2kLa1bQ1X7uEpNpOG2l1zzgm19wXZYllnjZphcll",
+  "lItQ/00hM7BgbSJWcqu8tShXlZUv6/ScClQZmkdN3mNojgmlt1fMv2LjejD1",
+  "8I8xfPcfBKelkz4bLHsB86pMvvE+g9tC+h2EvYU2Rw=="
+]
+
+X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
+  "Zo20R014Yt3IjMCsUVbOCoctwHOHaxsC3b6dPqmk3xIZo1zmOgVbsHzL72Bt",
+  "cRAeqm/gXHRNJlo4Fbh4jTJP3IBAm+mhga6aMZhRkrVUYfnZ1oEi8f/Z9WyY",
+  "uYPD8iygCEyFj2BshWsvo+lv3EvlmYlh5cKqjqaStLtGB118vfoTAf+XqK/y",
+  "tW4Ye6yn8KddnT/mLMqKJgy8PEbr+jVdLA7wDTZd64++IleNmgK72qneMEjk",
+  "4zuU5JWYfnT3MzyKR7sCsuEvxUNn/o4u5GEuuud2oP8dJUraNNUXpJYk9Us7",
+  "yZS3bUNsFPFVP3RAQadLX9gvC4eAZadTuly0wi0Edg=="
+]
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
 
@@ -321,6 +387,32 @@ EXPECTED_SIGN_RESULT_V1_1 = {
   "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES[3],
   "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES[4],
   "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES[5],
+  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+}
+
+EXPECTED_SIGN_RESULT_V1_3_SHA1 = {
+  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
+  "X-Ops-Userid"=>USER_ID,
+  "X-Ops-Sign"=>"algorithm=sha1;version=1.3;",
+  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[0],
+  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[1],
+  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[2],
+  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[3],
+  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[4],
+  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[5],
+  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+}
+
+EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
+  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH_SHA256,
+  "X-Ops-Userid"=>USER_ID,
+  "X-Ops-Sign"=>"algorithm=sha256;version=1.3;",
+  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
   "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
 }
 
@@ -478,6 +570,29 @@ X-Ops-UserId:#{DIGESTED_USER_ID}
 EOS
 V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
 
+V1_3_SHA1_CANONICAL_REQUEST_DATA = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH}
+X-Ops-Content-Hash:#{HASHED_BODY}
+X-Ops-Sign:algorithm=sha1;version=1.3
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{DIGESTED_USER_ID}
+EOS
+V1_3_SHA1_CANONICAL_REQUEST = V1_3_SHA1_CANONICAL_REQUEST_DATA.chomp
+
+V1_3_SHA256_CANONICAL_REQUEST_DATA = <<EOS
+Method:POST
+Hashed Path:#{HASHED_CANONICAL_PATH_SHA256}
+X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
+X-Ops-Sign:algorithm=sha256;version=1.3
+X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+X-Ops-UserId:#{DIGESTED_USER_ID_SHA256}
+EOS
+V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
+
+
+V1_3_SHA256_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256)
+V1_3_SHA1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA1)
 V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
 V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
 LONG_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
