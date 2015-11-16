@@ -141,7 +141,7 @@ module Mixlib
         signature = Base64.decode64(request_signature)
         @valid_signature = case version
                            when '1.3'
-                             digest = validate_sign_version_digest!(version, algorithm)
+                             digest = validate_sign_version_digest!(algorithm, version)
                              @user_secret.verify(digest.new, signature, candidate_block)
                            else
                              request_decrypted_block = @user_secret.public_decrypt(signature)
