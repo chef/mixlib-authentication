@@ -150,12 +150,38 @@ describe "Mixlib::Authentication::SignatureVerification" do
     @user_private_key = PRIVATE_KEY
   end
 
-  it "should authenticate a File-containing request - Merb" do
+  it "should authenticate a File-containing request V1.1 - Merb" do
     request_params = MERB_REQUEST_PARAMS.clone
     request_params["file"] =
       { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
 
     mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_1, "")
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).not_to be_nil
+  end
+
+  it "should authenticate a File-containing request V1.3 SHA1 - Merb" do
+    request_params = MERB_REQUEST_PARAMS.clone
+    request_params["file"] =
+      { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
+
+    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_3_SHA1, "")
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).not_to be_nil
+  end
+
+  it "should authenticate a File-containing request V1.3 SHA256 - Merb" do
+    request_params = MERB_REQUEST_PARAMS.clone
+    request_params["file"] =
+      { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
+
+    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_3_SHA256, "")
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -175,7 +201,25 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(res).not_to be_nil
   end
 
-  it "should authenticate a normal (post body) request - Merb" do
+  it "should authenticate a normal (post body) request v1.3 SHA1 - Merb" do
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_3_SHA1, BODY)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).not_to be_nil
+  end
+
+  it "should authenticate a normal (post body) request v1.3 SHA256 - Merb" do
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_3_SHA1, BODY)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    service = Mixlib::Authentication::SignatureVerification.new
+    res = service.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).not_to be_nil
+  end
+
+  it "should authenticate a normal (post body) request v1.1 - Merb" do
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_1, BODY)
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
@@ -256,6 +300,35 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(auth_req).to be_a_valid_content_hash
   end
 
+  it "shouldn't authenticate if the signature is wrong for v1.3 SHA1" do
+    headers =  MERB_HEADERS_V1_3_SHA1.dup
+    headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).to be_nil
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).not_to be_a_valid_signature
+    expect(auth_req).to be_a_valid_timestamp
+    expect(auth_req).to be_a_valid_content_hash
+  end
+
+  it "shouldn't authenticate if the signature is wrong for v1.3 SHA256" do
+    headers =  MERB_HEADERS_V1_3_SHA256.dup
+    headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
+    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+    auth_req = Mixlib::Authentication::SignatureVerification.new
+    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
+    expect(res).to be_nil
+    expect(auth_req).not_to be_a_valid_request
+    expect(auth_req).not_to be_a_valid_signature
+    expect(auth_req).to be_a_valid_timestamp
+    expect(auth_req).to be_a_valid_content_hash
+  end
 end
 
 USER_ID = "spec-user"
@@ -431,6 +504,38 @@ MERB_REQUEST_PARAMS = {
   "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks",
   "organization_id"=>"local-test-org", "requesting_actor_id"=>REQUESTING_ACTOR_ID,
 }
+
+MERB_HEADERS_V1_3_SHA1 = {
+  # These are used by signatureverification.
+  "HTTP_HOST"=>"127.0.0.1",
+  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.3;",
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[5],
+}.merge(OTHER_HEADERS)
+
+MERB_HEADERS_V1_3_SHA256 = {
+  # These are used by signatureverification.
+  "HTTP_HOST"=>"127.0.0.1",
+  "HTTP_X_OPS_SIGN"=>"algorithm=sha256;version=1.3;",
+  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH_SHA256,
+  "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
+}.merge(OTHER_HEADERS)
 
 # Tis is what will be in request.env for the Merb case.
 MERB_HEADERS_V1_1 = {

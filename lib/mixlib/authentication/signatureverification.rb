@@ -138,8 +138,15 @@ module Mixlib
 
       def verify_signature(algorithm, version)
         candidate_block = canonicalize_request(algorithm, version)
-        request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(request_signature))
-        @valid_signature = (request_decrypted_block == candidate_block)
+        signature = Base64.decode64(request_signature)
+        @valid_signature = case version
+                           when '1.3'
+                             digest = validate_sign_version_digest!(version, algorithm)
+                             @user_secret.verify(digest.new, signature, candidate_block)
+                           else
+                             request_decrypted_block = @user_secret.public_decrypt(signature)
+                             (request_decrypted_block == candidate_block)
+                           end
 
         # Keep the debug messages lined up so it's easy to scan them
         Mixlib::Authentication::Log.debug("Verifying request signature:")
