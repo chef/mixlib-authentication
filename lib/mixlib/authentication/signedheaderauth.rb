@@ -99,7 +99,7 @@ module Mixlib
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
       def sign(private_key, sign_algorithm=algorithm, sign_version=proto_version)
-        digest = validate_sign_version_digest!(sign_version, sign_algorithm)
+        digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
@@ -121,7 +121,7 @@ module Mixlib
         header_hash
       end
 
-      def validate_sign_version_digest!(sign_version, sign_algorithm)
+      def validate_sign_version_digest!(sign_algorithm, sign_version)
         if ALGORITHMS_FOR_VERSION[sign_version].nil?
           raise AuthenticationError,
             "Unsupported version '#{sign_version}'"
@@ -191,7 +191,7 @@ module Mixlib
       #
       #
       def canonicalize_request(sign_algorithm=algorithm, sign_version=proto_version)
-        digest = validate_sign_version_digest!(sign_version, sign_algorithm)
+        digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version, digest)
         case sign_version
         when "1.3"
