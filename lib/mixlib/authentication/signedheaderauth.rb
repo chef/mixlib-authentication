@@ -30,14 +30,16 @@ module Mixlib
 
       NULL_ARG = Object.new
 
-      SUPPORTED_ALGORITHMS = ['sha1'].freeze
-      SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
-
       ALGORITHMS_FOR_VERSION = {
         '1.0' => ['sha1'],
         '1.1' => ['sha1'],
         '1.3' => ['sha256', 'sha1'],
       }.freeze()
+
+      # Use of SUPPORTED_ALGORITHMS and SUPPORTED_VERSIONS is deprecated. Use
+      # ALGORITHMS_FOR_VERSION instead
+      SUPPORTED_ALGORITHMS = ['sha1'].freeze
+      SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
 
       DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
       DEFAULT_PROTO_VERSION = '1.0'.freeze
@@ -117,17 +119,6 @@ module Mixlib
         Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
 
         header_hash
-      end
-
-      def do_sign(private_key, digest, sign_algorithm, sign_version)
-        string_to_sign = canonicalize_request(sign_algorithm, sign_version)
-        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'"
-        case sign_version
-        when '1.3'
-          private_key.sign(digest.new, string_to_sign)
-        else
-          private_key.private_encrypt(string_to_sign)
-        end
       end
 
       def validate_sign_version_digest!(sign_version, sign_algorithm)
@@ -250,6 +241,18 @@ module Mixlib
 
       def digester
         Mixlib::Authentication::Digester
+      end
+
+      # private
+      def do_sign(private_key, digest, sign_algorithm, sign_version)
+        string_to_sign = canonicalize_request(sign_algorithm, sign_version)
+        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'"
+        case sign_version
+        when '1.3'
+          private_key.sign(digest.new, string_to_sign)
+        else
+          private_key.private_encrypt(string_to_sign)
+        end
       end
 
       private :canonical_time, :canonical_path, :parse_signing_description, :digester, :canonicalize_user_id
