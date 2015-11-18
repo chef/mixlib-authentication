@@ -44,6 +44,7 @@ module Mixlib
       DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
       DEFAULT_PROTO_VERSION = '1.0'.freeze
 
+      DEFAULT_SERVER_API_VERSION = '0'
 
       # === signing_object
       # This is the intended interface for signing requests with the
@@ -82,7 +83,8 @@ module Mixlib
                           args[:user_id],
                           args[:file],
                           args[:proto_version],
-                          args[:signing_algorithm]
+                          args[:signing_algorithm],
+                          args[:headers]
                          )
       end
 
@@ -201,7 +203,8 @@ module Mixlib
             "X-Ops-Content-Hash:#{hashed_body(digest)}",
             "X-Ops-Sign:algorithm=#{sign_algorithm};version=#{sign_version}",
             "X-Ops-Timestamp:#{canonical_time}",
-            "X-Ops-UserId:#{canonical_x_ops_user_id}"
+            "X-Ops-UserId:#{canonical_x_ops_user_id}",
+            "X-Ops-Server-API-Version:#{server_api_version}",
           ].join("\n")
         else
           [
@@ -263,7 +266,7 @@ module Mixlib
     # provides a more convenient interface to the constructor.
     class SigningObject < Struct.new(:http_method, :path, :body, :host,
                                      :timestamp, :user_id, :file, :proto_version,
-                                     :signing_algorithm)
+                                     :signing_algorithm, :headers)
       include SignedHeaderAuth
 
       def proto_version
@@ -282,7 +285,17 @@ module Mixlib
           end
         end
       end
-    end
 
+      def server_api_version
+        key = (self[:headers] || {}).keys.select do |k|
+          k.downcase == 'x-ops-server-api-version'
+        end.first
+        if key
+          self[:headers][key]
+        else
+          DEFAULT_SERVER_API_VERSION
+        end
+      end
+    end
   end
 end

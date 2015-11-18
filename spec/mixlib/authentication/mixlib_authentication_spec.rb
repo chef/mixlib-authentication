@@ -93,6 +93,8 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   it "should generate the correct string to sign and signature for version 1.3 with SHA1" do
     expect(V1_3_SHA1_SIGNING_OBJECT.proto_version).to eq("1.3")
     expect(V1_3_SHA1_SIGNING_OBJECT.canonicalize_request).to eq(V1_3_SHA1_CANONICAL_REQUEST)
+    expect(V1_3_SHA1_SIGNING_OBJECT.algorithm).to eq("sha1")
+    expect(V1_3_SHA1_SIGNING_OBJECT.server_api_version).to eq("1")
 
     # If you need to regenerate the constants in this test spec, print out
     # the results of res.inspect and copy them as appropriate into the
@@ -103,6 +105,7 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   it "should generate the correct string to sign and signature for version 1.3 with SHA256" do
     expect(V1_3_SHA256_SIGNING_OBJECT.proto_version).to eq("1.3")
     expect(V1_3_SHA256_SIGNING_OBJECT.algorithm).to eq("sha256")
+    expect(V1_3_SHA256_SIGNING_OBJECT.server_api_version).to eq("1")
     expect(V1_3_SHA256_SIGNING_OBJECT.canonicalize_request).to eq(V1_3_SHA256_CANONICAL_REQUEST)
 
     # If you need to regenerate the constants in this test spec, print out
@@ -370,7 +373,10 @@ V1_3_ARGS_SHA1 = {
   :file => MockFile.new,
   :path => PATH,
   :proto_version => '1.3',
-  :signing_algorithm => 'sha1'
+  :signing_algorithm => 'sha1',
+  :headers => {
+    'X-OpS-SeRvEr-ApI-VerSiOn' => '1'
+  }
 }
 
 V1_3_ARGS_SHA256 = {
@@ -380,7 +386,10 @@ V1_3_ARGS_SHA256 = {
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
   :file => MockFile.new,
   :path => PATH,
-  :proto_version => '1.3'
+  :proto_version => '1.3',
+  :headers => {
+    'X-OpS-SeRvEr-ApI-VerSiOn' => '1'
+  }
   # This defaults to sha256
 }
 
@@ -418,21 +427,21 @@ X_OPS_AUTHORIZATION_LINES = [
 ]
 
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA1 = [
-  "wVDg3X99mxxQr1Ox/KJc+zy7b/mPX/M1+jsta5Qht43UhkNq3spRqup8vP26",
-  "TT/0pSSDnJ//wlYnxrEP+izgRGO3n4rwLQNM/ePB+dOXSiOwLDJOl7yChUde",
-  "qrxX6xsaIps6+Di/DRQ1jqLBO5KHkt8Ndc6KUeyV4Dbz/O4+8VIJw0j22Sne",
-  "6kWG648yVrS/ODeHfPGw2kLa1bQ1X7uEpNpOG2l1zzgm19wXZYllnjZphcll",
-  "lItQ/00hM7BgbSJWcqu8tShXlZUv6/ScClQZmkdN3mNojgmlt1fMv2LjejD1",
-  "8I8xfPcfBKelkz4bLHsB86pMvvE+g9tC+h2EvYU2Rw=="
+  "Dh7xqnM3HabvuPVTsJCvHSWGyipvv0xkF9u7XfomC0tDHBF8wG4kEToRI7/1",
+  "CSa97jlHLQ+VqNq76uy2mxg0PBxPLxPcz+VREJxnxEv+gEEr6MAeMpV97ip0",
+  "VICuUZ3hPIVNl9hIjmaeOnQSbtJZZOIik0g0O+bpd7AQKa/Y7r2jw42D/Kgg",
+  "L/ts6ntD2wKb92iPZ5bEXYIJFKVKb7j10PTcHLxkMWd64Cd7GZAdHHl4z8/t",
+  "VZ5XCe23960z08d2P2I+iYBBCxRCOPwafBvbt0ubls2vecraHQYYXMXovjmV",
+  "Rxh8xRaTfEhpWwZJa1ONVvsldZlvGiHO/jhmRJ9oCA=="
 ]
 
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
-  "Zo20R014Yt3IjMCsUVbOCoctwHOHaxsC3b6dPqmk3xIZo1zmOgVbsHzL72Bt",
-  "cRAeqm/gXHRNJlo4Fbh4jTJP3IBAm+mhga6aMZhRkrVUYfnZ1oEi8f/Z9WyY",
-  "uYPD8iygCEyFj2BshWsvo+lv3EvlmYlh5cKqjqaStLtGB118vfoTAf+XqK/y",
-  "tW4Ye6yn8KddnT/mLMqKJgy8PEbr+jVdLA7wDTZd64++IleNmgK72qneMEjk",
-  "4zuU5JWYfnT3MzyKR7sCsuEvxUNn/o4u5GEuuud2oP8dJUraNNUXpJYk9Us7",
-  "yZS3bUNsFPFVP3RAQadLX9gvC4eAZadTuly0wi0Edg=="
+  "BjR+iTK2eOgwmT2yGqLvE7Fp+VlpRGyL1dVoF2DmhUPO7EVsnxx2s32AmlOw",
+  "EpaACpav8SoB7K4rpOo3gfBm0XAYLnLLWzcec2OQG2O0wxxHiKVn4qWEe7Cs",
+  "RZ903DGM54t4uK75vx6wwoEdZqZe21npsLK+F3oAqnkgp+YXmlYv9Se5tFKB",
+  "0GWM1ibGJMjUIFAm7vxzjcuEvkkKN49MnXeMAAykfymcs74RU6xEKYzzSAyC",
+  "ygkV6xQSapDMp/aY29cVA/1FgZeVMhnFSTjtqBehchZYwXswr0A72A86gID9",
+  "h2QsUpmQJwbOK3bb1GptAnd5IiLzIxtu+vFeY6h4eA=="
 ]
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
@@ -513,6 +522,7 @@ MERB_HEADERS_V1_3_SHA1 = {
   "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
   "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
   "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_SERVER_API_VERSION"=>"1",
   "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[0],
   "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[1],
   "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[2],
@@ -529,6 +539,7 @@ MERB_HEADERS_V1_3_SHA256 = {
   "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
   "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH_SHA256,
   "HTTP_X_OPS_USERID"=>USER_ID,
+  "HTTP_X_OPS_SERVER_API_VERSION"=>"1",
   "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
   "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
   "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
@@ -682,6 +693,7 @@ X-Ops-Content-Hash:#{HASHED_BODY}
 X-Ops-Sign:algorithm=sha1;version=1.3
 X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
 X-Ops-UserId:#{DIGESTED_USER_ID}
+X-Ops-Server-API-Version:1
 EOS
 V1_3_SHA1_CANONICAL_REQUEST = V1_3_SHA1_CANONICAL_REQUEST_DATA.chomp
 
@@ -692,9 +704,9 @@ X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
 X-Ops-Sign:algorithm=sha256;version=1.3
 X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
 X-Ops-UserId:#{DIGESTED_USER_ID_SHA256}
+X-Ops-Server-API-Version:1
 EOS
 V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
-
 
 V1_3_SHA256_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256)
 V1_3_SHA1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA1)
