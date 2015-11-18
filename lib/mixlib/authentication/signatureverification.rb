@@ -48,6 +48,8 @@ module Mixlib
 
       def_delegator :@auth_request, :request
 
+      def_delegator :@auth_request, :server_api_version
+
       include Mixlib::Authentication::SignedHeaderAuth
 
       def initialize(request=nil)
