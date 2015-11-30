@@ -44,8 +44,6 @@ module Mixlib
       DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
       DEFAULT_PROTO_VERSION = '1.0'.freeze
 
-      DEFAULT_SERVER_API_VERSION = '0'
-
       # === signing_object
       # This is the intended interface for signing requests with the
       # Opscode/Chef signed header protocol. This wraps the constructor for a

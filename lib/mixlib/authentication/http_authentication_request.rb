@@ -65,7 +65,7 @@ module Mixlib
       end
 
       def server_api_version
-        (headers[:x_ops_server_api_version] || '0').chomp
+        (headers[:x_ops_server_api_version] || DEFAULT_SERVER_API_VERSION).chomp
       end
 
       def request_signature

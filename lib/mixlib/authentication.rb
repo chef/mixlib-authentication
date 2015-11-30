@@ -20,6 +20,8 @@ require 'mixlib/log'
 
 module Mixlib
   module Authentication
+    DEFAULT_SERVER_API_VERSION = '0'
+
     class AuthenticationError < StandardError
     end
 

@@ -102,6 +102,10 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     expect(V1_3_SHA1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA1)
   end
 
+  it "should default to server api version 0 for version 1.3" do
+    expect(V1_3_SHA1_SIGNING_OBJECT_API0.server_api_version).to eq('0')
+  end
+
   it "should generate the correct string to sign and signature for version 1.3 with SHA256" do
     expect(V1_3_SHA256_SIGNING_OBJECT.proto_version).to eq("1.3")
     expect(V1_3_SHA256_SIGNING_OBJECT.algorithm).to eq("sha256")
@@ -710,6 +714,8 @@ V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
 
 V1_3_SHA256_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256)
 V1_3_SHA1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA1)
+V1_3_SHA1_SIGNING_OBJECT_API0 = Mixlib::Authentication::SignedHeaderAuth.signing_object(
+  V1_3_ARGS_SHA1.dup.tap {|x| x.delete(:headers)})
 V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
 V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
 LONG_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)

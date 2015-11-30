@@ -125,4 +125,8 @@ SIG
     expect(@http_authentication_request.request_signature).to eq(expected.chomp)
   end
 
+  it "defaults to server api version 0" do
+    expect(@http_authentication_request.server_api_version).to eq('0')
+  end
+
 end
