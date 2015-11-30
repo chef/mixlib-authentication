@@ -21,11 +21,10 @@ require 'mixlib/authentication'
 module Mixlib
   module Authentication
     class Digester
-      
       class << self
-        
-        def hash_file(f)
-          digester = Digest::SHA1.new
+
+        def hash_file(digest, f)
+          digester = digest.new
           buf = ""
           while f.read(16384, buf)
             digester.update buf
@@ -34,15 +33,15 @@ module Mixlib
         end
 
         # Digests a string, base64's and chomps the end
-        # 
+        #
         # ====Parameters
-        # 
-        def hash_string(str)
-          ::Base64.encode64(Digest::SHA1.digest(str)).chomp
+        #
+        def hash_string(digest, str)
+          ::Base64.encode64(digest.digest(str)).chomp
         end
-        
+
       end
-      
+
     end
   end
 end

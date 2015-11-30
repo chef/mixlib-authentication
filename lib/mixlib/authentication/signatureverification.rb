@@ -48,6 +48,8 @@ module Mixlib
 
       def_delegator :@auth_request, :request
 
+      def_delegator :@auth_request, :server_api_version
+
       include Mixlib::Authentication::SignedHeaderAuth
 
       def initialize(request=nil)
@@ -138,8 +140,15 @@ module Mixlib
 
       def verify_signature(algorithm, version)
         candidate_block = canonicalize_request(algorithm, version)
-        request_decrypted_block = @user_secret.public_decrypt(Base64.decode64(request_signature))
-        @valid_signature = (request_decrypted_block == candidate_block)
+        signature = Base64.decode64(request_signature)
+        @valid_signature = case version
+                           when '1.3'
+                             digest = validate_sign_version_digest!(algorithm, version)
+                             @user_secret.verify(digest.new, signature, candidate_block)
+                           else
+                             request_decrypted_block = @user_secret.public_decrypt(signature)
+                             (request_decrypted_block == candidate_block)
+                           end
 
         # Keep the debug messages lined up so it's easy to scan them
         Mixlib::Authentication::Log.debug("Verifying request signature:")
@@ -171,7 +180,7 @@ module Mixlib
 
       # The request signature is based on any file attached, if any. Otherwise
       # it's based on the body of the request.
-      def hashed_body
+      def hashed_body(digest=Digest::SHA1)
         unless @hashed_body
           # TODO: tim: 2009-112-28: It'd be nice to remove this special case, and
           # always hash the entire request body. In the file case it would just be
@@ -205,11 +214,11 @@ module Mixlib
           # we hash the body.
           if file_param
             Mixlib::Authentication::Log.debug "Digesting file_param: '#{file_param.inspect}'"
-            @hashed_body = digester.hash_file(file_param)
+            @hashed_body = digester.hash_file(digest, file_param)
           else
             body = request.raw_post
             Mixlib::Authentication::Log.debug "Digesting body: '#{body}'"
-            @hashed_body = digester.hash_string(body)
+            @hashed_body = digester.hash_string(digest, body)
           end
         end
         @hashed_body

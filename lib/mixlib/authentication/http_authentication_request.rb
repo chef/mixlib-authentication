@@ -64,6 +64,10 @@ module Mixlib
         headers[:x_ops_content_hash].chomp
       end
 
+      def server_api_version
+        (headers[:x_ops_server_api_version] || DEFAULT_SERVER_API_VERSION).chomp
+      end
+
       def request_signature
         unless @request_signature
           @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
@@ -80,8 +84,6 @@ module Mixlib
           raise MissingAuthenticationHeader, "missing required authentication header(s) '#{missing_headers.join("', '")}'"
         end
       end
-
-
     end
   end
 end

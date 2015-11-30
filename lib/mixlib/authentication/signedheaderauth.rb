@@ -19,7 +19,7 @@
 
 require 'time'
 require 'base64'
-require 'digest/sha1'
+require 'openssl/digest'
 require 'mixlib/authentication'
 require 'mixlib/authentication/digester'
 
@@ -29,12 +29,20 @@ module Mixlib
     module SignedHeaderAuth
 
       NULL_ARG = Object.new
+
+      ALGORITHMS_FOR_VERSION = {
+        '1.0' => ['sha1'],
+        '1.1' => ['sha1'],
+        '1.3' => ['sha256', 'sha1'],
+      }.freeze()
+
+      # Use of SUPPORTED_ALGORITHMS and SUPPORTED_VERSIONS is deprecated. Use
+      # ALGORITHMS_FOR_VERSION instead
       SUPPORTED_ALGORITHMS = ['sha1'].freeze
       SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
 
       DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
       DEFAULT_PROTO_VERSION = '1.0'.freeze
-
 
       # === signing_object
       # This is the intended interface for signing requests with the
@@ -72,7 +80,10 @@ module Mixlib
                           args[:timestamp],
                           args[:user_id],
                           args[:file],
-                          args[:proto_version])
+                          args[:proto_version],
+                          args[:signing_algorithm],
+                          args[:headers]
+                         )
       end
 
       def algorithm
@@ -88,26 +99,48 @@ module Mixlib
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
       def sign(private_key, sign_algorithm=algorithm, sign_version=proto_version)
+        digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
           "X-Ops-Sign" => "algorithm=#{sign_algorithm};version=#{sign_version};",
           "X-Ops-Userid" => user_id,
           "X-Ops-Timestamp" => canonical_time,
-          "X-Ops-Content-Hash" => hashed_body,
+          "X-Ops-Content-Hash" => hashed_body(digest),
         }
 
-        string_to_sign = canonicalize_request(sign_algorithm, sign_version)
-        signature = Base64.encode64(private_key.private_encrypt(string_to_sign)).chomp
+        signature = Base64.encode64(do_sign(private_key, digest, sign_algorithm, sign_version)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
           key = "X-Ops-Authorization-#{idx + 1}"
           header_hash[key] = signature_lines[idx]
         end
 
-        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'\nHeader hash: #{header_hash.inspect}"
+        Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
 
         header_hash
+      end
+
+      def validate_sign_version_digest!(sign_algorithm, sign_version)
+        if ALGORITHMS_FOR_VERSION[sign_version].nil?
+          raise AuthenticationError,
+            "Unsupported version '#{sign_version}'"
+        end
+
+        if !ALGORITHMS_FOR_VERSION[sign_version].include?(sign_algorithm)
+          raise AuthenticationError,
+            "Unsupported version '#{sign_version}'"
+        end
+
+        case sign_algorithm
+        when 'sha1'
+          OpenSSL::Digest::SHA1
+        when 'sha256'
+          OpenSSL::Digest::SHA256
+        else
+          # This case should never happen
+          raise "Unknown algorithm #{sign_algorithm}"
+        end
       end
 
       # Build the canonicalized time based on utc & iso8601
@@ -128,13 +161,27 @@ module Mixlib
         p.length > 1 ? p.chomp('/') : p
       end
 
-      def hashed_body
+      def hashed_body(digest=OpenSSL::Digest::SHA1)
+        # This is weird. sign() is called with the digest type and signing
+        # version. These are also expected to be properties of the object.
+        # Hence, we're going to assume the one that is passed to sign is
+        # the correct one and needs to passed through all the functions
+        # that do any sort of digest.
+        if @hashed_body_digest != nil && @hashed_body_digest != digest
+          raise "hashed_body must always be called with the same digest"
+        else
+          @hashed_body_digest = digest
+        end
         # Hash the file object if it was passed in, otherwise hash based on
         # the body.
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
-        @hashed_body ||= (self.file && self.file.respond_to?(:read)) ? digester.hash_file(self.file) : digester.hash_string(self.body)
+        @hashed_body ||= if self.file && self.file.respond_to?(:read)
+                           digester.hash_file(digest, self.file)
+                         else
+                           digester.hash_string(digest, self.body)
+                         end
       end
 
       # Takes HTTP request method & headers and creates a canonical form
@@ -144,20 +191,34 @@ module Mixlib
       #
       #
       def canonicalize_request(sign_algorithm=algorithm, sign_version=proto_version)
-        unless SUPPORTED_ALGORITHMS.include?(sign_algorithm) && SUPPORTED_VERSIONS.include?(sign_version)
-          raise AuthenticationError, "Bad algorithm '#{sign_algorithm}' (allowed: #{SUPPORTED_ALGORITHMS.inspect}) or version '#{sign_version}' (allowed: #{SUPPORTED_VERSIONS.inspect})"
+        digest = validate_sign_version_digest!(sign_algorithm, sign_version)
+        canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version, digest)
+        case sign_version
+        when "1.3"
+          [
+            "Method:#{http_method.to_s.upcase}",
+            "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+            "X-Ops-Content-Hash:#{hashed_body(digest)}",
+            "X-Ops-Sign:algorithm=#{sign_algorithm};version=#{sign_version}",
+            "X-Ops-Timestamp:#{canonical_time}",
+            "X-Ops-UserId:#{canonical_x_ops_user_id}",
+            "X-Ops-Server-API-Version:#{server_api_version}",
+          ].join("\n")
+        else
+          [
+            "Method:#{http_method.to_s.upcase}",
+            "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+            "X-Ops-Content-Hash:#{hashed_body(digest)}",
+            "X-Ops-Timestamp:#{canonical_time}",
+            "X-Ops-UserId:#{canonical_x_ops_user_id}"
+          ].join("\n")
         end
-
-        canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version)
-        "Method:#{http_method.to_s.upcase}\nHashed Path:#{digester.hash_string(canonical_path)}\nX-Ops-Content-Hash:#{hashed_body}\nX-Ops-Timestamp:#{canonical_time}\nX-Ops-UserId:#{canonical_x_ops_user_id}"
       end
 
-      def canonicalize_user_id(user_id, proto_version)
+      def canonicalize_user_id(user_id, proto_version, digest=OpenSSL::Digest::SHA1)
         case proto_version
-        when "1.1"
-          digester.hash_string(user_id)
-        when "1.0"
-          user_id
+        when "1.1", "1.3"
+          digester.hash_string(digest, user_id)
         else
           user_id
         end
@@ -181,6 +242,18 @@ module Mixlib
         Mixlib::Authentication::Digester
       end
 
+      # private
+      def do_sign(private_key, digest, sign_algorithm, sign_version)
+        string_to_sign = canonicalize_request(sign_algorithm, sign_version)
+        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'"
+        case sign_version
+        when '1.3'
+          private_key.sign(digest.new, string_to_sign)
+        else
+          private_key.private_encrypt(string_to_sign)
+        end
+      end
+
       private :canonical_time, :canonical_path, :parse_signing_description, :digester, :canonicalize_user_id
 
     end
@@ -189,13 +262,38 @@ module Mixlib
     # A Struct-based value object that contains the necessary information to
     # generate a request signature. `SignedHeaderAuth.signing_object()`
     # provides a more convenient interface to the constructor.
-    class SigningObject < Struct.new(:http_method, :path, :body, :host, :timestamp, :user_id, :file, :proto_version)
+    class SigningObject < Struct.new(:http_method, :path, :body, :host,
+                                     :timestamp, :user_id, :file, :proto_version,
+                                     :signing_algorithm, :headers)
       include SignedHeaderAuth
 
       def proto_version
         (self[:proto_version] or DEFAULT_PROTO_VERSION).to_s
       end
-    end
 
+      def algorithm
+        if self[:signing_algorithm]
+          self[:signing_algorithm]
+        else
+          case proto_version
+          when '1.3'
+            ALGORITHMS_FOR_VERSION[proto_version].first
+          else
+            DEFAULT_SIGN_ALGORITHM
+          end
+        end
+      end
+
+      def server_api_version
+        key = (self[:headers] || {}).keys.select do |k|
+          k.downcase == 'x-ops-server-api-version'
+        end.first
+        if key
+          self[:headers][key]
+        else
+          DEFAULT_SERVER_API_VERSION
+        end
+      end
+    end
   end
 end
