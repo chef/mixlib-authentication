@@ -90,22 +90,6 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_1)
   end
 
-  it "should generate the correct string to sign and signature for version 1.3 with SHA1" do
-    expect(V1_3_SHA1_SIGNING_OBJECT.proto_version).to eq("1.3")
-    expect(V1_3_SHA1_SIGNING_OBJECT.canonicalize_request).to eq(V1_3_SHA1_CANONICAL_REQUEST)
-    expect(V1_3_SHA1_SIGNING_OBJECT.algorithm).to eq("sha1")
-    expect(V1_3_SHA1_SIGNING_OBJECT.server_api_version).to eq("1")
-
-    # If you need to regenerate the constants in this test spec, print out
-    # the results of res.inspect and copy them as appropriate into the
-    # the constants in this file.
-    expect(V1_3_SHA1_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA1)
-  end
-
-  it "should default to server api version 0 for version 1.3" do
-    expect(V1_3_SHA1_SIGNING_OBJECT_API0.server_api_version).to eq('0')
-  end
-
   it "should generate the correct string to sign and signature for version 1.3 with SHA256" do
     expect(V1_3_SHA256_SIGNING_OBJECT.proto_version).to eq("1.3")
     expect(V1_3_SHA256_SIGNING_OBJECT.algorithm).to eq("sha256")
@@ -170,19 +154,6 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(res).not_to be_nil
   end
 
-  it "should authenticate a File-containing request V1.3 SHA1 - Merb" do
-    request_params = MERB_REQUEST_PARAMS.clone
-    request_params["file"] =
-      { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
-
-    mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_3_SHA1, "")
-    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
-
-    service = Mixlib::Authentication::SignatureVerification.new
-    res = service.authenticate_user_request(mock_request, @user_private_key)
-    expect(res).not_to be_nil
-  end
-
   it "should authenticate a File-containing request V1.3 SHA256 - Merb" do
     request_params = MERB_REQUEST_PARAMS.clone
     request_params["file"] =
@@ -208,17 +179,8 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(res).not_to be_nil
   end
 
-  it "should authenticate a normal (post body) request v1.3 SHA1 - Merb" do
-    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_3_SHA1, BODY)
-    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
-
-    service = Mixlib::Authentication::SignatureVerification.new
-    res = service.authenticate_user_request(mock_request, @user_private_key)
-    expect(res).not_to be_nil
-  end
-
   it "should authenticate a normal (post body) request v1.3 SHA256 - Merb" do
-    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_3_SHA1, BODY)
+    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_HEADERS_V1_3_SHA256, BODY)
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
 
     service = Mixlib::Authentication::SignatureVerification.new
@@ -307,21 +269,6 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(auth_req).to be_a_valid_content_hash
   end
 
-  it "shouldn't authenticate if the signature is wrong for v1.3 SHA1" do
-    headers =  MERB_HEADERS_V1_3_SHA1.dup
-    headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
-    mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
-    expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
-
-    auth_req = Mixlib::Authentication::SignatureVerification.new
-    res = auth_req.authenticate_user_request(mock_request, @user_private_key)
-    expect(res).to be_nil
-    expect(auth_req).not_to be_a_valid_request
-    expect(auth_req).not_to be_a_valid_signature
-    expect(auth_req).to be_a_valid_timestamp
-    expect(auth_req).to be_a_valid_content_hash
-  end
-
   it "shouldn't authenticate if the signature is wrong for v1.3 SHA256" do
     headers =  MERB_HEADERS_V1_3_SHA256.dup
     headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
@@ -367,20 +314,6 @@ V1_1_ARGS = {
   :file => MockFile.new,
   :path => PATH,
   :proto_version => 1.1
-}
-
-V1_3_ARGS_SHA1 = {
-  :body => BODY,
-  :user_id => USER_ID,
-  :http_method => :post,
-  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-  :file => MockFile.new,
-  :path => PATH,
-  :proto_version => '1.3',
-  :signing_algorithm => 'sha1',
-  :headers => {
-    'X-OpS-SeRvEr-ApI-VerSiOn' => '1'
-  }
 }
 
 V1_3_ARGS_SHA256 = {
@@ -430,15 +363,6 @@ X_OPS_AUTHORIZATION_LINES = [
 "FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A=="
 ]
 
-X_OPS_AUTHORIZATION_LINES_V1_3_SHA1 = [
-  "Dh7xqnM3HabvuPVTsJCvHSWGyipvv0xkF9u7XfomC0tDHBF8wG4kEToRI7/1",
-  "CSa97jlHLQ+VqNq76uy2mxg0PBxPLxPcz+VREJxnxEv+gEEr6MAeMpV97ip0",
-  "VICuUZ3hPIVNl9hIjmaeOnQSbtJZZOIik0g0O+bpd7AQKa/Y7r2jw42D/Kgg",
-  "L/ts6ntD2wKb92iPZ5bEXYIJFKVKb7j10PTcHLxkMWd64Cd7GZAdHHl4z8/t",
-  "VZ5XCe23960z08d2P2I+iYBBCxRCOPwafBvbt0ubls2vecraHQYYXMXovjmV",
-  "Rxh8xRaTfEhpWwZJa1ONVvsldZlvGiHO/jhmRJ9oCA=="
-]
-
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "BjR+iTK2eOgwmT2yGqLvE7Fp+VlpRGyL1dVoF2DmhUPO7EVsnxx2s32AmlOw",
   "EpaACpav8SoB7K4rpOo3gfBm0XAYLnLLWzcec2OQG2O0wxxHiKVn4qWEe7Cs",
@@ -476,19 +400,6 @@ EXPECTED_SIGN_RESULT_V1_1 = {
   "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
 }
 
-EXPECTED_SIGN_RESULT_V1_3_SHA1 = {
-  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
-  "X-Ops-Userid"=>USER_ID,
-  "X-Ops-Sign"=>"algorithm=sha1;version=1.3;",
-  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[0],
-  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[1],
-  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[2],
-  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[3],
-  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[4],
-  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[5],
-  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
-}
-
 EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
   "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH_SHA256,
   "X-Ops-Userid"=>USER_ID,
@@ -517,23 +428,6 @@ MERB_REQUEST_PARAMS = {
   "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks",
   "organization_id"=>"local-test-org", "requesting_actor_id"=>REQUESTING_ACTOR_ID,
 }
-
-MERB_HEADERS_V1_3_SHA1 = {
-  # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.3;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_SERVER_API_VERSION"=>"1",
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA1[5],
-}.merge(OTHER_HEADERS)
 
 MERB_HEADERS_V1_3_SHA256 = {
   # These are used by signatureverification.
@@ -690,17 +584,6 @@ X-Ops-UserId:#{DIGESTED_USER_ID}
 EOS
 V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
 
-V1_3_SHA1_CANONICAL_REQUEST_DATA = <<EOS
-Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH}
-X-Ops-Content-Hash:#{HASHED_BODY}
-X-Ops-Sign:algorithm=sha1;version=1.3
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{DIGESTED_USER_ID}
-X-Ops-Server-API-Version:1
-EOS
-V1_3_SHA1_CANONICAL_REQUEST = V1_3_SHA1_CANONICAL_REQUEST_DATA.chomp
-
 V1_3_SHA256_CANONICAL_REQUEST_DATA = <<EOS
 Method:POST
 Hashed Path:#{HASHED_CANONICAL_PATH_SHA256}
@@ -713,9 +596,6 @@ EOS
 V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
 
 V1_3_SHA256_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256)
-V1_3_SHA1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA1)
-V1_3_SHA1_SIGNING_OBJECT_API0 = Mixlib::Authentication::SignedHeaderAuth.signing_object(
-  V1_3_ARGS_SHA1.dup.tap {|x| x.delete(:headers)})
 V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
 V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)
 LONG_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(LONG_PATH_LONG_USER_ARGS)
