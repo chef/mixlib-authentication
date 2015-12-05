@@ -287,7 +287,6 @@ end
 
 USER_ID = "spec-user"
 DIGESTED_USER_ID = Base64.encode64(Digest::SHA1.new.digest(USER_ID)).chomp
-DIGESTED_USER_ID_SHA256 = Base64.encode64(Digest::SHA256.new.digest(USER_ID)).chomp
 BODY = "Spec Body"
 HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=" # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
 HASHED_BODY_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho="
@@ -295,7 +294,6 @@ TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
 TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
 PATH = "/organizations/clownco"
 HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
-HASHED_CANONICAL_PATH_SHA256 = "Z3EsTMw/UBNY9n+q+WBWTJmeVg8hQFbdFzVWRxW4dOA="
 
 V1_0_ARGS = {
   :body => BODY,
@@ -364,12 +362,12 @@ X_OPS_AUTHORIZATION_LINES = [
 ]
 
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
-  "BjR+iTK2eOgwmT2yGqLvE7Fp+VlpRGyL1dVoF2DmhUPO7EVsnxx2s32AmlOw",
-  "EpaACpav8SoB7K4rpOo3gfBm0XAYLnLLWzcec2OQG2O0wxxHiKVn4qWEe7Cs",
-  "RZ903DGM54t4uK75vx6wwoEdZqZe21npsLK+F3oAqnkgp+YXmlYv9Se5tFKB",
-  "0GWM1ibGJMjUIFAm7vxzjcuEvkkKN49MnXeMAAykfymcs74RU6xEKYzzSAyC",
-  "ygkV6xQSapDMp/aY29cVA/1FgZeVMhnFSTjtqBehchZYwXswr0A72A86gID9",
-  "h2QsUpmQJwbOK3bb1GptAnd5IiLzIxtu+vFeY6h4eA=="
+  "FZOmXAyOBAZQV/uw188iBljBJXOm+m8xQ/8KTGLkgGwZNcRFxk1m953XjE3W",
+  "VGy1dFT76KeaNWmPCNtDmprfH2na5UZFtfLIKrPv7xm80V+lzEzTd9WBwsfP",
+  "42dZ9N+V9I5SVfcL/lWrrlpdybfceJC5jOcP5tzfJXWUITwb6Z3Erg3DU3Uh",
+  "H9h9E0qWlYGqmiNCVrBnpe6Si1gU/Jl+rXlRSNbLJ4GlArAPuL976iTYJTzE",
+  "MmbLUIm3JRYi00Yb01IUCCKdI90vUq1HHNtlTEu93YZfQaJwRxXlGkCNwIJe",
+  "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w=="
 ]
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
@@ -586,11 +584,11 @@ V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
 
 V1_3_SHA256_CANONICAL_REQUEST_DATA = <<EOS
 Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH_SHA256}
+Path:#{PATH}
 X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
-X-Ops-Sign:algorithm=sha256;version=1.3
+X-Ops-Sign:version=1.3
 X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{DIGESTED_USER_ID_SHA256}
+X-Ops-UserId:#{USER_ID}
 X-Ops-Server-API-Version:1
 EOS
 V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp

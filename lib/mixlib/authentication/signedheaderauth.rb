@@ -196,9 +196,9 @@ module Mixlib
         when "1.3"
           [
             "Method:#{http_method.to_s.upcase}",
-            "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+            "Path:#{canonical_path}",
             "X-Ops-Content-Hash:#{hashed_body(digest)}",
-            "X-Ops-Sign:algorithm=#{sign_algorithm};version=#{sign_version}",
+            "X-Ops-Sign:version=#{sign_version}",
             "X-Ops-Timestamp:#{canonical_time}",
             "X-Ops-UserId:#{canonical_x_ops_user_id}",
             "X-Ops-Server-API-Version:#{server_api_version}",
@@ -216,9 +216,11 @@ module Mixlib
 
       def canonicalize_user_id(user_id, proto_version, digest=OpenSSL::Digest::SHA1)
         case proto_version
-        when "1.1", "1.3"
+        when "1.1"
+          # and 1.2 if that ever gets implemented
           digester.hash_string(digest, user_id)
         else
+          # versions 1.0 and 1.3
           user_id
         end
       end
