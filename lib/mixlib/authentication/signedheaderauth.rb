@@ -30,14 +30,14 @@ module Mixlib
 
       NULL_ARG = Object.new
 
-      ALGORITHMS_FOR_VERSION = {
-        '1.0' => ['sha1'],
-        '1.1' => ['sha1'],
-        '1.3' => ['sha256', 'sha1'],
+      ALGORITHM_FOR_VERSION = {
+        '1.0' => 'sha1',
+        '1.1' => 'sha1',
+        '1.3' => 'sha256',
       }.freeze()
 
       # Use of SUPPORTED_ALGORITHMS and SUPPORTED_VERSIONS is deprecated. Use
-      # ALGORITHMS_FOR_VERSION instead
+      # ALGORITHM_FOR_VERSION instead
       SUPPORTED_ALGORITHMS = ['sha1'].freeze
       SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
 
@@ -81,13 +81,12 @@ module Mixlib
                           args[:user_id],
                           args[:file],
                           args[:proto_version],
-                          args[:signing_algorithm],
                           args[:headers]
                          )
       end
 
       def algorithm
-        DEFAULT_SIGN_ALGORITHM
+        ALGORITHM_FOR_VERSION[proto_version] || DEFAULT_SIGN_ALGORITHM
       end
 
       def proto_version
@@ -122,14 +121,14 @@ module Mixlib
       end
 
       def validate_sign_version_digest!(sign_algorithm, sign_version)
-        if ALGORITHMS_FOR_VERSION[sign_version].nil?
+        if ALGORITHM_FOR_VERSION[sign_version].nil?
           raise AuthenticationError,
             "Unsupported version '#{sign_version}'"
         end
 
-        if !ALGORITHMS_FOR_VERSION[sign_version].include?(sign_algorithm)
+        if ALGORITHM_FOR_VERSION[sign_version] != sign_algorithm
           raise AuthenticationError,
-            "Unsupported version '#{sign_version}'"
+            "Unsupported algorithm #{sign_algorithm} for version '#{sign_version}'"
         end
 
         case sign_algorithm
@@ -197,9 +196,9 @@ module Mixlib
         when "1.3"
           [
             "Method:#{http_method.to_s.upcase}",
-            "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+            "Path:#{canonical_path}",
             "X-Ops-Content-Hash:#{hashed_body(digest)}",
-            "X-Ops-Sign:algorithm=#{sign_algorithm};version=#{sign_version}",
+            "X-Ops-Sign:version=#{sign_version}",
             "X-Ops-Timestamp:#{canonical_time}",
             "X-Ops-UserId:#{canonical_x_ops_user_id}",
             "X-Ops-Server-API-Version:#{server_api_version}",
@@ -217,9 +216,11 @@ module Mixlib
 
       def canonicalize_user_id(user_id, proto_version, digest=OpenSSL::Digest::SHA1)
         case proto_version
-        when "1.1", "1.3"
+        when "1.1"
+          # and 1.2 if that ever gets implemented
           digester.hash_string(digest, user_id)
         else
+          # versions 1.0 and 1.3
           user_id
         end
       end
@@ -264,24 +265,11 @@ module Mixlib
     # provides a more convenient interface to the constructor.
     class SigningObject < Struct.new(:http_method, :path, :body, :host,
                                      :timestamp, :user_id, :file, :proto_version,
-                                     :signing_algorithm, :headers)
+                                     :headers)
       include SignedHeaderAuth
 
       def proto_version
         (self[:proto_version] or DEFAULT_PROTO_VERSION).to_s
-      end
-
-      def algorithm
-        if self[:signing_algorithm]
-          self[:signing_algorithm]
-        else
-          case proto_version
-          when '1.3'
-            ALGORITHMS_FOR_VERSION[proto_version].first
-          else
-            DEFAULT_SIGN_ALGORITHM
-          end
-        end
       end
 
       def server_api_version
