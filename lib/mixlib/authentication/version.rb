@@ -16,6 +16,6 @@
 
 module Mixlib
   module Authentication
-    VERSION = '1.3.0'
+    VERSION = '1.4.0.rc.0'
   end
 end
