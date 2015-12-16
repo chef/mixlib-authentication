@@ -177,9 +177,9 @@ module Mixlib
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
         @hashed_body ||= if self.file && self.file.respond_to?(:read)
-                           digester.hash_file(digest, self.file)
+                           digester.hash_file(self.file, digest)
                          else
-                           digester.hash_string(digest, self.body)
+                           digester.hash_string(self.body, digest)
                          end
       end
 
@@ -206,7 +206,7 @@ module Mixlib
         else
           [
             "Method:#{http_method.to_s.upcase}",
-            "Hashed Path:#{digester.hash_string(digest, canonical_path)}",
+            "Hashed Path:#{digester.hash_string(canonical_path, digest)}",
             "X-Ops-Content-Hash:#{hashed_body(digest)}",
             "X-Ops-Timestamp:#{canonical_time}",
             "X-Ops-UserId:#{canonical_x_ops_user_id}"
@@ -218,7 +218,7 @@ module Mixlib
         case proto_version
         when "1.1"
           # and 1.2 if that ever gets implemented
-          digester.hash_string(digest, user_id)
+          digester.hash_string(user_id, digest)
         else
           # versions 1.0 and 1.3
           user_id
