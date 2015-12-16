@@ -17,13 +17,14 @@
 #
 
 require 'mixlib/authentication'
+require 'openssl'
 
 module Mixlib
   module Authentication
     class Digester
       class << self
 
-        def hash_file(digest, f)
+        def hash_file(f, digest=OpenSSL::Digest::SHA1)
           digester = digest.new
           buf = ""
           while f.read(16384, buf)
@@ -36,7 +37,7 @@ module Mixlib
         #
         # ====Parameters
         #
-        def hash_string(digest, str)
+        def hash_string(str, digest=OpenSSL::Digest::SHA1)
           ::Base64.encode64(digest.digest(str)).chomp
         end
 
