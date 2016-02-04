@@ -1,5 +1,5 @@
 sudo: false
-langauge: ruby
+language: ruby
 rvm:
   - 2.0
   - 2.1
