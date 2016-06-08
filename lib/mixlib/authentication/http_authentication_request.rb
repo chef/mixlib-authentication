@@ -6,9 +6,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-require 'mixlib/authentication'
+require "mixlib/authentication"
 
 module Mixlib
   module Authentication
@@ -33,7 +33,7 @@ module Mixlib
       end
 
       def headers
-        @headers ||= @request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
+        @headers ||= @request.env.inject({}) { |memo, kv| memo[$2.tr("-", "_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
       end
 
       def http_method
@@ -70,12 +70,11 @@ module Mixlib
 
       def request_signature
         unless @request_signature
-          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x,y| x.to_s <=> y.to_s}.map { |i| i[1] }.join("\n")
+          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }.sort { |x, y| x.to_s <=> y.to_s }.map { |i| i[1] }.join("\n")
           Mixlib::Authentication::Log.debug "Reconstituted (user-supplied) request signature: #{@request_signature}"
         end
         @request_signature
       end
-
 
       def validate_headers!
         missing_headers = MANDATORY_HEADERS - headers.keys

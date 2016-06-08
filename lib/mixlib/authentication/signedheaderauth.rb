@@ -17,11 +17,11 @@
 # limitations under the License.
 #
 
-require 'time'
-require 'base64'
-require 'openssl/digest'
-require 'mixlib/authentication'
-require 'mixlib/authentication/digester'
+require "time"
+require "base64"
+require "openssl/digest"
+require "mixlib/authentication"
+require "mixlib/authentication/digester"
 
 module Mixlib
   module Authentication
@@ -31,18 +31,18 @@ module Mixlib
       NULL_ARG = Object.new
 
       ALGORITHM_FOR_VERSION = {
-        '1.0' => 'sha1',
-        '1.1' => 'sha1',
-        '1.3' => 'sha256',
+        "1.0" => "sha1",
+        "1.1" => "sha1",
+        "1.3" => "sha256",
       }.freeze()
 
       # Use of SUPPORTED_ALGORITHMS and SUPPORTED_VERSIONS is deprecated. Use
       # ALGORITHM_FOR_VERSION instead
-      SUPPORTED_ALGORITHMS = ['sha1'].freeze
-      SUPPORTED_VERSIONS = ['1.0', '1.1'].freeze
+      SUPPORTED_ALGORITHMS = ["sha1"].freeze
+      SUPPORTED_VERSIONS = ["1.0", "1.1"].freeze
 
-      DEFAULT_SIGN_ALGORITHM = 'sha1'.freeze
-      DEFAULT_PROTO_VERSION = '1.0'.freeze
+      DEFAULT_SIGN_ALGORITHM = "sha1".freeze
+      DEFAULT_PROTO_VERSION = "1.0".freeze
 
       # === signing_object
       # This is the intended interface for signing requests with the
@@ -72,7 +72,7 @@ module Mixlib
       # ==== Other Parameters:
       # These parameters are accepted but not used in the computation of the signature.
       # * `:host`: The host part of the URI
-      def self.signing_object(args={ })
+      def self.signing_object(args = {})
         SigningObject.new(args[:http_method],
                           args[:path],
                           args[:body],
@@ -97,7 +97,7 @@ module Mixlib
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
       # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
-      def sign(private_key, sign_algorithm=algorithm, sign_version=proto_version)
+      def sign(private_key, sign_algorithm = algorithm, sign_version = proto_version)
         digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
@@ -132,9 +132,9 @@ module Mixlib
         end
 
         case sign_algorithm
-        when 'sha1'
+        when "sha1"
           OpenSSL::Digest::SHA1
-        when 'sha256'
+        when "sha256"
           OpenSSL::Digest::SHA256
         else
           # This case should never happen
@@ -156,11 +156,11 @@ module Mixlib
       # ====Parameters
       #
       def canonical_path
-        p = path.gsub(/\/+/,'/')
-        p.length > 1 ? p.chomp('/') : p
+        p = path.gsub(/\/+/, "/")
+        p.length > 1 ? p.chomp("/") : p
       end
 
-      def hashed_body(digest=OpenSSL::Digest::SHA1)
+      def hashed_body(digest = OpenSSL::Digest::SHA1)
         # This is weird. sign() is called with the digest type and signing
         # version. These are also expected to be properties of the object.
         # Hence, we're going to assume the one that is passed to sign is
@@ -189,7 +189,7 @@ module Mixlib
       # ====Parameters
       #
       #
-      def canonicalize_request(sign_algorithm=algorithm, sign_version=proto_version)
+      def canonicalize_request(sign_algorithm = algorithm, sign_version = proto_version)
         digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         canonical_x_ops_user_id = canonicalize_user_id(user_id, sign_version, digest)
         case sign_version
@@ -209,12 +209,12 @@ module Mixlib
             "Hashed Path:#{digester.hash_string(canonical_path, digest)}",
             "X-Ops-Content-Hash:#{hashed_body(digest)}",
             "X-Ops-Timestamp:#{canonical_time}",
-            "X-Ops-UserId:#{canonical_x_ops_user_id}"
+            "X-Ops-UserId:#{canonical_x_ops_user_id}",
           ].join("\n")
         end
       end
 
-      def canonicalize_user_id(user_id, proto_version, digest=OpenSSL::Digest::SHA1)
+      def canonicalize_user_id(user_id, proto_version, digest = OpenSSL::Digest::SHA1)
         case proto_version
         when "1.1"
           # and 1.2 if that ever gets implemented
@@ -230,7 +230,7 @@ module Mixlib
       # ====Parameters
       #
       def parse_signing_description
-        parts = signing_description.strip.split(";").inject({ }) do |memo, part|
+        parts = signing_description.strip.split(";").inject({}) do |memo, part|
           field_name, field_value = part.split("=")
           memo[field_name.to_sym] = field_value.strip
           memo
@@ -248,7 +248,7 @@ module Mixlib
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
         Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'"
         case sign_version
-        when '1.3'
+        when "1.3"
           private_key.sign(digest.new, string_to_sign)
         else
           private_key.private_encrypt(string_to_sign)
@@ -269,12 +269,12 @@ module Mixlib
       include SignedHeaderAuth
 
       def proto_version
-        (self[:proto_version] or DEFAULT_PROTO_VERSION).to_s
+        (self[:proto_version] || DEFAULT_PROTO_VERSION).to_s
       end
 
       def server_api_version
         key = (self[:headers] || {}).keys.select do |k|
-          k.downcase == 'x-ops-server-api-version'
+          k.downcase == "x-ops-server-api-version"
         end.first
         if key
           self[:headers][key]

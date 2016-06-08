@@ -18,13 +18,13 @@
 # limitations under the License.
 #
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..','..','spec_helper'))
-require 'rubygems'
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
+require "rubygems"
 
-require 'ostruct'
-require 'openssl'
-require 'mixlib/authentication/signatureverification'
-require 'time'
+require "ostruct"
+require "openssl"
+require "mixlib/authentication/signatureverification"
+require "time"
 
 # TODO: should make these regular spec-based mock objects.
 class MockRequest
@@ -102,10 +102,9 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     expect(V1_3_SHA256_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
   end
 
-
   it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
-    algorithm = 'sha1'
-    version = '1.1'
+    algorithm = "sha1"
+    version = "1.1"
 
     V1_1_SIGNING_OBJECT.proto_version = "1.0"
     expect(V1_1_SIGNING_OBJECT.proto_version).to eq("1.0")
@@ -118,19 +117,19 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
-    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.1') }.not_to raise_error
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha1", "1.1") }.not_to raise_error
   end
 
   it "should choke when signing a request for a long user id with version 1.0" do
-    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', '1.0') }.to raise_error(OpenSSL::PKey::RSAError)
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha1", "1.0") }.to raise_error(OpenSSL::PKey::RSAError)
   end
 
   it "should choke when signing a request with a bad version" do
-    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha1', 'poo') }.to raise_error(Mixlib::Authentication::AuthenticationError)
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha1", "poo") }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
   it "should choke when signing a request with a bad algorithm" do
-    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, 'sha_poo', '1.1') }.to raise_error(Mixlib::Authentication::AuthenticationError)
+    expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha_poo", "1.1") }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
 end
@@ -144,7 +143,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   it "should authenticate a File-containing request V1.1 - Merb" do
     request_params = MERB_REQUEST_PARAMS.clone
     request_params["file"] =
-      { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
+      { "size" => MockFile.length, "content_type" => "application/octet-stream", "filename" => "zsh.tar.gz", "tempfile" => MockFile.new }
 
     mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_1, "")
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
@@ -157,7 +156,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   it "should authenticate a File-containing request V1.3 SHA256 - Merb" do
     request_params = MERB_REQUEST_PARAMS.clone
     request_params["file"] =
-      { "size"=>MockFile.length, "content_type"=>"application/octet-stream", "filename"=>"zsh.tar.gz", "tempfile"=>MockFile.new }
+      { "size" => MockFile.length, "content_type" => "application/octet-stream", "filename" => "zsh.tar.gz", "tempfile" => MockFile.new }
 
     mock_request = MockRequest.new(PATH, request_params, MERB_HEADERS_V1_3_SHA256, "")
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
@@ -215,14 +214,13 @@ describe "Mixlib::Authentication::SignatureVerification" do
     #Time.stub!(:now).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
-    expect {auth_req.authenticate_user_request(mock_request, @user_private_key)}.to raise_error(Mixlib::Authentication::AuthenticationError)
+    expect { auth_req.authenticate_user_request(mock_request, @user_private_key) }.to raise_error(Mixlib::Authentication::AuthenticationError)
 
     expect(auth_req).not_to be_a_valid_request
     expect(auth_req).not_to be_a_valid_timestamp
     expect(auth_req).not_to be_a_valid_signature
     expect(auth_req).not_to be_a_valid_content_hash
   end
-
 
   it "shouldn't authenticate if Authorization header is wrong" do
     headers = MERB_HEADERS_V1_1.clone
@@ -255,7 +253,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 
   it "shouldn't authenticate if the signature is wrong" do
-    headers =  MERB_HEADERS_V1_1.dup
+    headers = MERB_HEADERS_V1_1.dup
     headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
@@ -270,7 +268,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 
   it "shouldn't authenticate if the signature is wrong for v1.3 SHA256" do
-    headers =  MERB_HEADERS_V1_3_SHA256.dup
+    headers = MERB_HEADERS_V1_3_SHA256.dup
     headers["HTTP_X_OPS_AUTHORIZATION_1"] = "epicfail"
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
@@ -301,7 +299,7 @@ V1_0_ARGS = {
   :http_method => :post,
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
   :file => MockFile.new,
-  :path => PATH
+  :path => PATH,
 }
 
 V1_1_ARGS = {
@@ -311,7 +309,7 @@ V1_1_ARGS = {
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
   :file => MockFile.new,
   :path => PATH,
-  :proto_version => 1.1
+  :proto_version => 1.1,
 }
 
 V1_3_ARGS_SHA256 = {
@@ -321,9 +319,9 @@ V1_3_ARGS_SHA256 = {
   :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
   :file => MockFile.new,
   :path => PATH,
-  :proto_version => '1.3',
+  :proto_version => "1.3",
   :headers => {
-    'X-OpS-SeRvEr-ApI-VerSiOn' => '1'
+    "X-OpS-SeRvEr-ApI-VerSiOn" => "1",
   }
   # This defaults to sha256
 }
@@ -332,9 +330,9 @@ LONG_PATH_LONG_USER_ARGS = {
   :body => BODY,
   :user_id => "A" * 200,
   :http_method => :put,
-  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  :timestamp => TIMESTAMP_ISO8601, # fixed timestamp so we get back the same answer each time.
   :file => MockFile.new,
-  :path => PATH + "/nodes/#{"A" * 250}"
+  :path => PATH + "/nodes/#{"A" * 250}",
 }
 
 REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
@@ -349,7 +347,7 @@ X_OPS_AUTHORIZATION_LINES_V1_0 = [
 "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
 "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
 "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
-"utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="
+"utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==",
 ]
 
 X_OPS_AUTHORIZATION_LINES = [
@@ -358,7 +356,7 @@ X_OPS_AUTHORIZATION_LINES = [
 "c2R9bx/43IWA/r8w8Q6decuu0f6ZlNheJeJhaYPI8piX/aH+uHBH8zTACZu8",
 "vMnl5MF3/OIlsZc8cemq6eKYstp8a8KYq9OmkB5IXIX6qVMJHA6fRvQEB/7j",
 "281Q7oI/O+lE8AmVyBbwruPb7Mp6s4839eYiOdjbDwFjYtbS3XgAjrHlaD7W",
-"FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A=="
+"FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A==",
 ]
 
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
@@ -367,154 +365,154 @@ X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "42dZ9N+V9I5SVfcL/lWrrlpdybfceJC5jOcP5tzfJXWUITwb6Z3Erg3DU3Uh",
   "H9h9E0qWlYGqmiNCVrBnpe6Si1gU/Jl+rXlRSNbLJ4GlArAPuL976iTYJTzE",
   "MmbLUIm3JRYi00Yb01IUCCKdI90vUq1HHNtlTEu93YZfQaJwRxXlGkCNwIJe",
-  "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w=="
+  "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w==",
 ]
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
 
 EXPECTED_SIGN_RESULT_V1_0 = {
-  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
-  "X-Ops-Userid"=>USER_ID,
-  "X-Ops-Sign"=>"algorithm=sha1;version=1.0;",
-  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
-  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
-  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
-  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
-  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
-  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
-  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+  "X-Ops-Content-Hash" => X_OPS_CONTENT_HASH,
+  "X-Ops-Userid" => USER_ID,
+  "X-Ops-Sign" => "algorithm=sha1;version=1.0;",
+  "X-Ops-Authorization-1" => X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "X-Ops-Authorization-2" => X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "X-Ops-Authorization-3" => X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "X-Ops-Authorization-4" => X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES_V1_0[5],
+  "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
 }
 
 EXPECTED_SIGN_RESULT_V1_1 = {
-  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH,
-  "X-Ops-Userid"=>USER_ID,
-  "X-Ops-Sign"=>"algorithm=sha1;version=1.1;",
-  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES[0],
-  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES[1],
-  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES[2],
-  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES[3],
-  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES[4],
-  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES[5],
-  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+  "X-Ops-Content-Hash" => X_OPS_CONTENT_HASH,
+  "X-Ops-Userid" => USER_ID,
+  "X-Ops-Sign" => "algorithm=sha1;version=1.1;",
+  "X-Ops-Authorization-1" => X_OPS_AUTHORIZATION_LINES[0],
+  "X-Ops-Authorization-2" => X_OPS_AUTHORIZATION_LINES[1],
+  "X-Ops-Authorization-3" => X_OPS_AUTHORIZATION_LINES[2],
+  "X-Ops-Authorization-4" => X_OPS_AUTHORIZATION_LINES[3],
+  "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES[4],
+  "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES[5],
+  "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
 }
 
 EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
-  "X-Ops-Content-Hash"=>X_OPS_CONTENT_HASH_SHA256,
-  "X-Ops-Userid"=>USER_ID,
-  "X-Ops-Sign"=>"algorithm=sha256;version=1.3;",
-  "X-Ops-Authorization-1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
-  "X-Ops-Authorization-2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
-  "X-Ops-Authorization-3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
-  "X-Ops-Authorization-4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
-  "X-Ops-Authorization-5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
-  "X-Ops-Authorization-6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
-  "X-Ops-Timestamp"=>TIMESTAMP_ISO8601
+  "X-Ops-Content-Hash" => X_OPS_CONTENT_HASH_SHA256,
+  "X-Ops-Userid" => USER_ID,
+  "X-Ops-Sign" => "algorithm=sha256;version=1.3;",
+  "X-Ops-Authorization-1" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "X-Ops-Authorization-2" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "X-Ops-Authorization-3" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "X-Ops-Authorization-4" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
+  "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
 }
 
 OTHER_HEADERS = {
   # An arbitrary sampling of non-HTTP_* headers are in here to
   # exercise that code path.
-  "REMOTE_ADDR"=>"127.0.0.1",
-  "PATH_INFO"=>"/organizations/local-test-org/cookbooks",
-  "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks",
-  "CONTENT_TYPE"=>"multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
-  "CONTENT_LENGTH"=>"394",
+  "REMOTE_ADDR" => "127.0.0.1",
+  "PATH_INFO" => "/organizations/local-test-org/cookbooks",
+  "REQUEST_PATH" => "/organizations/local-test-org/cookbooks",
+  "CONTENT_TYPE" => "multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
+  "CONTENT_LENGTH" => "394",
 }
 
 # This is what will be in request.params for the Merb case.
 MERB_REQUEST_PARAMS = {
-  "name"=>"zsh", "action"=>"create", "controller"=>"chef_server_api/cookbooks",
-  "organization_id"=>"local-test-org", "requesting_actor_id"=>REQUESTING_ACTOR_ID,
+  "name" => "zsh", "action" => "create", "controller" => "chef_server_api/cookbooks",
+  "organization_id" => "local-test-org", "requesting_actor_id" => REQUESTING_ACTOR_ID
 }
 
 MERB_HEADERS_V1_3_SHA256 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"algorithm=sha256;version=1.3;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH_SHA256,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_SERVER_API_VERSION"=>"1",
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_OPS_SIGN" => "algorithm=sha256;version=1.3;",
+  "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH" => X_OPS_CONTENT_HASH_SHA256,
+  "HTTP_X_OPS_USERID" => USER_ID,
+  "HTTP_X_OPS_SERVER_API_VERSION" => "1",
+  "HTTP_X_OPS_AUTHORIZATION_1" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "HTTP_X_OPS_AUTHORIZATION_2" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "HTTP_X_OPS_AUTHORIZATION_3" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "HTTP_X_OPS_AUTHORIZATION_4" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "HTTP_X_OPS_AUTHORIZATION_5" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "HTTP_X_OPS_AUTHORIZATION_6" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
 }.merge(OTHER_HEADERS)
 
 # Tis is what will be in request.env for the Merb case.
 MERB_HEADERS_V1_1 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5],
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_OPS_SIGN" => "algorithm=sha1;version=1.1;",
+  "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH" => X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID" => USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1" => X_OPS_AUTHORIZATION_LINES[0],
+  "HTTP_X_OPS_AUTHORIZATION_2" => X_OPS_AUTHORIZATION_LINES[1],
+  "HTTP_X_OPS_AUTHORIZATION_3" => X_OPS_AUTHORIZATION_LINES[2],
+  "HTTP_X_OPS_AUTHORIZATION_4" => X_OPS_AUTHORIZATION_LINES[3],
+  "HTTP_X_OPS_AUTHORIZATION_5" => X_OPS_AUTHORIZATION_LINES[4],
+  "HTTP_X_OPS_AUTHORIZATION_6" => X_OPS_AUTHORIZATION_LINES[5],
 }.merge(OTHER_HEADERS)
 
 # Tis is what will be in request.env for the Merb case.
 MERB_HEADERS_V1_0 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"version=1.0",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_OPS_SIGN" => "version=1.0",
+  "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH" => X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID" => USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1" => X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "HTTP_X_OPS_AUTHORIZATION_2" => X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "HTTP_X_OPS_AUTHORIZATION_3" => X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "HTTP_X_OPS_AUTHORIZATION_4" => X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "HTTP_X_OPS_AUTHORIZATION_5" => X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "HTTP_X_OPS_AUTHORIZATION_6" => X_OPS_AUTHORIZATION_LINES_V1_0[5],
 }.merge(OTHER_HEADERS)
 
 PASSENGER_REQUEST_PARAMS = {
-  "action"=>"create",
+  "action" => "create",
   #"tarball"=>#<File:/tmp/RackMultipart20091120-25570-mgq2sa-0>,
-  "controller"=>"api/v1/cookbooks",
-  "cookbook"=>"{\"category\":\"databases\"}",
+  "controller" => "api/v1/cookbooks",
+  "cookbook" => "{\"category\":\"databases\"}",
 }
 
 PASSENGER_HEADERS_V1_1 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"algorithm=sha1;version=1.1;",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES[5],
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_OPS_SIGN" => "algorithm=sha1;version=1.1;",
+  "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH" => X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID" => USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1" => X_OPS_AUTHORIZATION_LINES[0],
+  "HTTP_X_OPS_AUTHORIZATION_2" => X_OPS_AUTHORIZATION_LINES[1],
+  "HTTP_X_OPS_AUTHORIZATION_3" => X_OPS_AUTHORIZATION_LINES[2],
+  "HTTP_X_OPS_AUTHORIZATION_4" => X_OPS_AUTHORIZATION_LINES[3],
+  "HTTP_X_OPS_AUTHORIZATION_5" => X_OPS_AUTHORIZATION_LINES[4],
+  "HTTP_X_OPS_AUTHORIZATION_6" => X_OPS_AUTHORIZATION_LINES[5],
 }.merge(OTHER_HEADERS)
 
 PASSENGER_HEADERS_V1_0 = {
   # These are used by signatureverification.
-  "HTTP_HOST"=>"127.0.0.1",
-  "HTTP_X_OPS_SIGN"=>"version=1.0",
-  "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386",
-  "HTTP_X_OPS_TIMESTAMP"=>TIMESTAMP_ISO8601,
-  "HTTP_X_OPS_CONTENT_HASH"=>X_OPS_CONTENT_HASH,
-  "HTTP_X_OPS_USERID"=>USER_ID,
-  "HTTP_X_OPS_AUTHORIZATION_1"=>X_OPS_AUTHORIZATION_LINES_V1_0[0],
-  "HTTP_X_OPS_AUTHORIZATION_2"=>X_OPS_AUTHORIZATION_LINES_V1_0[1],
-  "HTTP_X_OPS_AUTHORIZATION_3"=>X_OPS_AUTHORIZATION_LINES_V1_0[2],
-  "HTTP_X_OPS_AUTHORIZATION_4"=>X_OPS_AUTHORIZATION_LINES_V1_0[3],
-  "HTTP_X_OPS_AUTHORIZATION_5"=>X_OPS_AUTHORIZATION_LINES_V1_0[4],
-  "HTTP_X_OPS_AUTHORIZATION_6"=>X_OPS_AUTHORIZATION_LINES_V1_0[5],
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_OPS_SIGN" => "version=1.0",
+  "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_OPS_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_OPS_CONTENT_HASH" => X_OPS_CONTENT_HASH,
+  "HTTP_X_OPS_USERID" => USER_ID,
+  "HTTP_X_OPS_AUTHORIZATION_1" => X_OPS_AUTHORIZATION_LINES_V1_0[0],
+  "HTTP_X_OPS_AUTHORIZATION_2" => X_OPS_AUTHORIZATION_LINES_V1_0[1],
+  "HTTP_X_OPS_AUTHORIZATION_3" => X_OPS_AUTHORIZATION_LINES_V1_0[2],
+  "HTTP_X_OPS_AUTHORIZATION_4" => X_OPS_AUTHORIZATION_LINES_V1_0[3],
+  "HTTP_X_OPS_AUTHORIZATION_5" => X_OPS_AUTHORIZATION_LINES_V1_0[4],
+  "HTTP_X_OPS_AUTHORIZATION_6" => X_OPS_AUTHORIZATION_LINES_V1_0[5],
 }.merge(OTHER_HEADERS)
 
 # generated with

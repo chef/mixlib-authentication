@@ -5,9 +5,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..','..','spec_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
 
-require 'mixlib/authentication'
-require 'mixlib/authentication/http_authentication_request'
-require 'ostruct'
-require 'pp'
+require "mixlib/authentication"
+require "mixlib/authentication/http_authentication_request"
+require "ostruct"
+require "pp"
 
 describe Mixlib::Authentication::HTTPAuthenticationRequest do
   before do
@@ -39,66 +39,66 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
     @merb_headers = {
       # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
       # headers are in here to exercise that code path.
-      "HTTP_HOST"=>"127.0.0.1", 
-      "HTTP_X_OPS_SIGN"=>"version=1.0",
-      "HTTP_X_OPS_REQUESTID"=>"127.0.0.1 1258566194.85386", 
-      "HTTP_X_OPS_TIMESTAMP"=>@timestamp_iso8601, 
-      "HTTP_X_OPS_CONTENT_HASH"=>@x_ops_content_hash, 
-      "HTTP_X_OPS_USERID"=>@user_id, 
-      "HTTP_X_OPS_AUTHORIZATION_1"=>@http_x_ops_lines[0], 
-      "HTTP_X_OPS_AUTHORIZATION_2"=>@http_x_ops_lines[1], 
-      "HTTP_X_OPS_AUTHORIZATION_3"=>@http_x_ops_lines[2], 
-      "HTTP_X_OPS_AUTHORIZATION_4"=>@http_x_ops_lines[3], 
-      "HTTP_X_OPS_AUTHORIZATION_5"=>@http_x_ops_lines[4], 
-      "HTTP_X_OPS_AUTHORIZATION_6"=>@http_x_ops_lines[5], 
+      "HTTP_HOST" => "127.0.0.1",
+      "HTTP_X_OPS_SIGN" => "version=1.0",
+      "HTTP_X_OPS_REQUESTID" => "127.0.0.1 1258566194.85386",
+      "HTTP_X_OPS_TIMESTAMP" => @timestamp_iso8601,
+      "HTTP_X_OPS_CONTENT_HASH" => @x_ops_content_hash,
+      "HTTP_X_OPS_USERID" => @user_id,
+      "HTTP_X_OPS_AUTHORIZATION_1" => @http_x_ops_lines[0],
+      "HTTP_X_OPS_AUTHORIZATION_2" => @http_x_ops_lines[1],
+      "HTTP_X_OPS_AUTHORIZATION_3" => @http_x_ops_lines[2],
+      "HTTP_X_OPS_AUTHORIZATION_4" => @http_x_ops_lines[3],
+      "HTTP_X_OPS_AUTHORIZATION_5" => @http_x_ops_lines[4],
+      "HTTP_X_OPS_AUTHORIZATION_6" => @http_x_ops_lines[5],
 
       # Random sampling
-      "REMOTE_ADDR"=>"127.0.0.1", 
-      "PATH_INFO"=>"/organizations/local-test-org/cookbooks", 
-      "REQUEST_PATH"=>"/organizations/local-test-org/cookbooks", 
-      "CONTENT_TYPE"=>"multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
-      "CONTENT_LENGTH"=>"394", 
+      "REMOTE_ADDR" => "127.0.0.1",
+      "PATH_INFO" => "/organizations/local-test-org/cookbooks",
+      "REQUEST_PATH" => "/organizations/local-test-org/cookbooks",
+      "CONTENT_TYPE" => "multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
+      "CONTENT_LENGTH" => "394",
     }
-    @request = request.new(@merb_headers, "POST", '/nodes')
+    @request = request.new(@merb_headers, "POST", "/nodes")
     @http_authentication_request = Mixlib::Authentication::HTTPAuthenticationRequest.new(@request)
   end
 
   it "normalizes the headers to lowercase symbols" do
-    expected = {:host=>"127.0.0.1",
-                :x_ops_sign=>"version=1.0",
-                :x_ops_requestid=>"127.0.0.1 1258566194.85386",
-                :x_ops_timestamp=>"2009-01-01T12:00:00Z",
-                :x_ops_content_hash=>"DFteJZPVv6WKdQmMqZUQUumUyRs=",
-                :x_ops_userid=>"spec-user",
-                :x_ops_authorization_1=>"jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
-                :x_ops_authorization_2=>"NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
-                :x_ops_authorization_3=>"3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
-                :x_ops_authorization_4=>"IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
-                :x_ops_authorization_5=>"9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
-                :x_ops_authorization_6=>"utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w=="}
+    expected = { :host => "127.0.0.1",
+                 :x_ops_sign => "version=1.0",
+                 :x_ops_requestid => "127.0.0.1 1258566194.85386",
+                 :x_ops_timestamp => "2009-01-01T12:00:00Z",
+                 :x_ops_content_hash => "DFteJZPVv6WKdQmMqZUQUumUyRs=",
+                 :x_ops_userid => "spec-user",
+                 :x_ops_authorization_1 => "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
+                 :x_ops_authorization_2 => "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
+                 :x_ops_authorization_3 => "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
+                 :x_ops_authorization_4 => "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
+                 :x_ops_authorization_5 => "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
+                 :x_ops_authorization_6 => "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==" }
     expect(@http_authentication_request.headers).to eq(expected)
   end
 
   it "raises an error when not all required headers are given" do
     @merb_headers.delete("HTTP_X_OPS_SIGN")
     exception = Mixlib::Authentication::MissingAuthenticationHeader
-    expect{ Mixlib::Authentication::HTTPAuthenticationRequest.new(@request) }.to raise_error(exception)
+    expect { Mixlib::Authentication::HTTPAuthenticationRequest.new(@request) }.to raise_error(exception)
   end
 
   it "extracts the path from the request" do
-    expect(@http_authentication_request.path).to eq('/nodes')
+    expect(@http_authentication_request.path).to eq("/nodes")
   end
 
   it "extracts the request method from the request" do
-    expect(@http_authentication_request.http_method).to eq('POST')
+    expect(@http_authentication_request.http_method).to eq("POST")
   end
 
   it "extracts the signing description from the request headers" do
-    expect(@http_authentication_request.signing_description).to eq('version=1.0')
+    expect(@http_authentication_request.signing_description).to eq("version=1.0")
   end
 
   it "extracts the user_id from the request headers" do
-    expect(@http_authentication_request.user_id).to eq('spec-user')
+    expect(@http_authentication_request.user_id).to eq("spec-user")
   end
 
   it "extracts the timestamp from the request headers" do
@@ -114,7 +114,7 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
   end
 
   it "rebuilds the request signature from the headers" do
-    expected=<<-SIG
+    expected = <<-SIG
 jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4
 NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc
 3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O
@@ -126,7 +126,7 @@ SIG
   end
 
   it "defaults to server api version 0" do
-    expect(@http_authentication_request.server_api_version).to eq('0')
+    expect(@http_authentication_request.server_api_version).to eq("0")
   end
 
 end

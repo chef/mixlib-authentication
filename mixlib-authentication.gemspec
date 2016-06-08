@@ -1,5 +1,5 @@
-$:.unshift(File.dirname(__FILE__) + '/lib')
-require 'mixlib/authentication/version'
+$:.unshift(File.dirname(__FILE__) + "/lib")
+require "mixlib/authentication/version"
 
 Gem::Specification.new do |s|
   s.name = "mixlib-authentication"
@@ -15,10 +15,11 @@ Gem::Specification.new do |s|
   # Uncomment this to add a dependency
   s.add_dependency "mixlib-log"
 
-  s.require_path = 'lib'
-  s.files = %w(LICENSE README.md Gemfile Rakefile NOTICE) + Dir.glob("*.gemspec") +
-      Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject {|f| File.directory?(f) }
+  s.require_path = "lib"
+  s.files = %w{LICENSE README.md Gemfile Rakefile NOTICE} + Dir.glob("*.gemspec") +
+    Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
 
-  %w(rspec-core rspec-expectations rspec-mocks).each { |gem| s.add_development_dependency gem, "~> 3.2" }
+  %w{rspec-core rspec-expectations rspec-mocks}.each { |gem| s.add_development_dependency gem, "~> 3.2" }
+  s.add_development_dependency "chefstyle"
   s.add_development_dependency "rake", "~> 10.4"
 end

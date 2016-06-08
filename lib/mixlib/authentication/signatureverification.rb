@@ -7,9 +7,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,11 @@
 # limitations under the License.
 #
 
-require 'net/http'
-require 'forwardable'
-require 'mixlib/authentication'
-require 'mixlib/authentication/http_authentication_request'
-require 'mixlib/authentication/signedheaderauth'
+require "net/http"
+require "forwardable"
+require "mixlib/authentication"
+require "mixlib/authentication/http_authentication_request"
+require "mixlib/authentication/signedheaderauth"
 
 module Mixlib
   module Authentication
@@ -52,7 +52,7 @@ module Mixlib
 
       include Mixlib::Authentication::SignedHeaderAuth
 
-      def initialize(request=nil)
+      def initialize(request = nil)
         @auth_request = HTTPAuthenticationRequest.new(request) if request
 
         @valid_signature, @valid_timestamp, @valid_content_hash = false, false, false
@@ -60,8 +60,7 @@ module Mixlib
         @hashed_body = nil
       end
 
-
-      def authenticate_user_request(request, user_lookup, time_skew=(15*60))
+      def authenticate_user_request(request, user_lookup, time_skew = (15 * 60))
         @auth_request = HTTPAuthenticationRequest.new(request)
         authenticate_request(user_lookup, time_skew)
       end
@@ -74,9 +73,9 @@ module Mixlib
       # X-Ops-Sign: algorithm=sha1;version=1.0;
       # X-Ops-UserId: <user_id>
       # X-Ops-Timestamp:
-      # X-Ops-Content-Hash: 
+      # X-Ops-Content-Hash:
       # X-Ops-Authorization-#{line_number}
-      def authenticate_request(user_secret, time_skew=(15*60))
+      def authenticate_request(user_secret, time_skew = (15 * 60))
         Mixlib::Authentication::Log.debug "Initializing header auth : #{request.inspect}"
 
         @user_secret       = user_secret
@@ -87,14 +86,14 @@ module Mixlib
 
           # version 1.0 clients don't include their algorithm in the
           # signing description, so default to sha1
-          parts[:algorithm] ||= 'sha1'
+          parts[:algorithm] ||= "sha1"
 
           verify_signature(parts[:algorithm], parts[:version])
           verify_timestamp
           verify_content_hash
 
-        rescue StandardError=>se
-          raise AuthenticationError,"Failed to authenticate user request. Check your client key and clock: #{se.message}", se.backtrace
+        rescue StandardError => se
+          raise AuthenticationError, "Failed to authenticate user request. Check your client key and clock: #{se.message}", se.backtrace
         end
 
         if valid_request?
@@ -121,11 +120,11 @@ module Mixlib
       end
 
       # The authorization header is a Base64-encoded version of an RSA signature.
-      # The client sent it on multiple header lines, starting at index 1 - 
+      # The client sent it on multiple header lines, starting at index 1 -
       # X-Ops-Authorization-1, X-Ops-Authorization-2, etc. Pull them out and
       # concatenate.
       def headers
-        @headers ||= request.env.inject({ }) { |memo, kv| memo[$2.gsub(/\-/,"_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
+        @headers ||= request.env.inject({}) { |memo, kv| memo[$2.tr("-", "_").downcase.to_sym] = kv[1] if kv[0] =~ /^(HTTP_)(.*)/; memo }
       end
 
       private
@@ -142,7 +141,7 @@ module Mixlib
         candidate_block = canonicalize_request(algorithm, version)
         signature = Base64.decode64(request_signature)
         @valid_signature = case version
-                           when '1.3'
+                           when "1.3"
                              digest = validate_sign_version_digest!(algorithm, version)
                              @user_secret.verify(digest.new, signature, candidate_block)
                            else
@@ -177,10 +176,9 @@ module Mixlib
         @valid_content_hash
       end
 
-
       # The request signature is based on any file attached, if any. Otherwise
       # it's based on the body of the request.
-      def hashed_body(digest=Digest::SHA1)
+      def hashed_body(digest = Digest::SHA1)
         unless @hashed_body
           # TODO: tim: 2009-112-28: It'd be nice to remove this special case, and
           # always hash the entire request body. In the file case it would just be
@@ -189,22 +187,22 @@ module Mixlib
           # Pull out any file that was attached to this request, using multipart
           # form uploads.
           # Depending on the server we're running in, multipart form uploads are
-          # handed to us differently. 
-          # - In Passenger (Cookbooks Community Site), the File is handed to us 
-          #   directly in the params hash. The name is whatever the client used, 
-          #   its value is therefore a File or Tempfile. 
+          # handed to us differently.
+          # - In Passenger (Cookbooks Community Site), the File is handed to us
+          #   directly in the params hash. The name is whatever the client used,
+          #   its value is therefore a File or Tempfile.
           #   e.g. request['file_param'] = File
-          #   
-          # - In Merb (Chef server), the File is wrapped. The original parameter 
+          #
+          # - In Merb (Chef server), the File is wrapped. The original parameter
           #   name used for the file is used, but its value is a Hash. Within
-          #   the hash is a name/value pair named 'file' which actually 
+          #   the hash is a name/value pair named 'file' which actually
           #   contains the Tempfile instance.
           #   e.g. request['file_param'] = { :file => Tempfile }
           file_param = request.params.values.find { |value| value.respond_to?(:read) }
 
           # No file_param; we're running in Merb, or it's just not there..
           if file_param.nil?
-            hash_param = request.params.values.find { |value| value.respond_to?(:has_key?) }  # Hash responds to :has_key? .
+            hash_param = request.params.values.find { |value| value.respond_to?(:has_key?) } # Hash responds to :has_key? .
             if !hash_param.nil?
               file_param = hash_param.values.find { |value| value.respond_to?(:read) } # File/Tempfile responds to :read.
             end
@@ -225,22 +223,19 @@ module Mixlib
       end
 
       # Compare the request timestamp with boundary time
-      # 
-      # 
+      #
+      #
       # ====Parameters
       # time1<Time>:: minuend
       # time2<Time>:: subtrahend
       #
       def timestamp_within_bounds?(time1, time2)
-        time_diff = (time2-time1).abs
+        time_diff = (time2 - time1).abs
         is_allowed = (time_diff < @allowed_time_skew)
         Mixlib::Authentication::Log.debug "Request time difference: #{time_diff}, within #{@allowed_time_skew} seconds? : #{!!is_allowed}"
-        is_allowed      
+        is_allowed
       end
     end
 
-
   end
 end
-
-
