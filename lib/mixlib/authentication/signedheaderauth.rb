@@ -274,7 +274,7 @@ module Mixlib
 
       def server_api_version
         key = (self[:headers] || {}).keys.select do |k|
-          k.downcase == "x-ops-server-api-version"
+          k.casecmp("x-ops-server-api-version").zero?
         end.first
         if key
           self[:headers][key]
