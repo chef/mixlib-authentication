@@ -21,5 +21,5 @@ Gem::Specification.new do |s|
 
   %w{rspec-core rspec-expectations rspec-mocks}.each { |gem| s.add_development_dependency gem, "~> 3.2" }
   s.add_development_dependency "chefstyle"
-  s.add_development_dependency "rake", "~> 10.4"
+  s.add_development_dependency "rake", "~> 11"
 end
