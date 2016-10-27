@@ -22,6 +22,7 @@ require "base64"
 require "openssl/digest"
 require "mixlib/authentication"
 require "mixlib/authentication/digester"
+require "net/ssh"
 
 module Mixlib
   module Authentication
@@ -96,8 +97,11 @@ module Mixlib
       # Build the canonicalized request based on the method, other headers, etc.
       # compute the signature from the request, using the looked-up user secret
       # ====Parameters
-      # private_key<OpenSSL::PKey::RSA>:: user's RSA private key.
-      def sign(private_key, sign_algorithm = algorithm, sign_version = proto_version)
+      # keypair<OpenSSL::PKey::RSA>:: user's RSA keypair. The OpenSSL::PKey::RSA
+      # container can either be filled with a private/public keypair or just a
+      # public key. From x-ops protocol version 1.3 on the sign method will look
+      # out to sign the request via a ssh-agent, if only a public key is present.
+      def sign(keypair, sign_algorithm = algorithm, sign_version = proto_version)
         digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
@@ -108,7 +112,7 @@ module Mixlib
           "X-Ops-Content-Hash" => hashed_body(digest),
         }
 
-        signature = Base64.encode64(do_sign(private_key, digest, sign_algorithm, sign_version)).chomp
+        signature = Base64.encode64(do_sign(keypair, digest, sign_algorithm, sign_version)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
           key = "X-Ops-Authorization-#{idx + 1}"
@@ -245,14 +249,31 @@ module Mixlib
       end
 
       # private
-      def do_sign(private_key, digest, sign_algorithm, sign_version)
+      def do_sign(keypair, digest, sign_algorithm, sign_version)
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
         Mixlib::Authentication.logger.debug "String to sign: '#{string_to_sign}'"
         case sign_version
         when "1.3"
-          private_key.sign(digest.new, string_to_sign)
+          if keypair.private?
+            keypair.sign(digest.new, string_to_sign)
+          else
+            Mixlib::Authentication::Log.debug "No private key supplied, attempt to sign with ssh-agent."
+            begin
+              agent = Net::SSH::Authentication::Agent.connect
+            rescue => e
+              raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set properly! (#{e.class.name}: #{e.message})"
+            end
+            begin
+              ssh2_signature = agent.sign(keypair.public_key, string_to_sign)
+            rescue => e
+              raise AuthenticationError, "Ssh-agent could not sign your request. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
+            end
+            # extract signature from SSH Agent response => skip first 15 bytes for RSA keys
+            # (see http://api.libssh.org/rfc/PROTOCOL.agent for details)
+            ssh2_signature[20..-1]
+          end
         else
-          private_key.private_encrypt(string_to_sign)
+          keypair.private_encrypt(string_to_sign)
         end
       end
 

@@ -12,6 +12,8 @@ Gem::Specification.new do |s|
   s.email = "info@chef.io"
   s.homepage = "https://www.chef.io"
 
+  s.add_dependency "net-ssh"
+
   s.require_path = "lib"
   s.files = %w{LICENSE README.md Gemfile Rakefile NOTICE} + Dir.glob("*.gemspec") +
     Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }

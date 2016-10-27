@@ -25,6 +25,7 @@ require "ostruct"
 require "openssl"
 require "mixlib/authentication/signatureverification"
 require "time"
+require "net/ssh"
 
 # TODO: should make these regular spec-based mock objects.
 class MockRequest
@@ -99,6 +100,11 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
     expect(V1_3_SHA256_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
+
+    agent = double("ssh-agent")
+    allow(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
+    allow(agent).to receive(:sign).and_return(SSH_AGENT_RESPONSE)
+    expect(V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
   end
 
   it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
@@ -129,6 +135,18 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
 
   it "should choke when signing a request with a bad algorithm" do
     expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha_poo", "1.1") }.to raise_error(Mixlib::Authentication::AuthenticationError)
+  end
+
+  it "should choke when signing a request via ssh-agent and ssh-agent is not reachable with version 1.3" do
+    expect { Net::SSH::Authentication::Agent.connect }.to raise_error(Net::SSH::Authentication::AgentNotAvailable)
+    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY) }.to raise_error(Mixlib::Authentication::AuthenticationError)
+  end
+
+  it "should choke when signing a request via ssh-agent and the key is not loaded with version 1.3" do
+    agent = double("ssh-agent")
+    allow(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
+    allow(agent).to receive(:sign).and_raise(Net::SSH::Authentication::AgentError)
+    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY) }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
 end
@@ -366,6 +384,8 @@ X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "MmbLUIm3JRYi00Yb01IUCCKdI90vUq1HHNtlTEu93YZfQaJwRxXlGkCNwIJe",
   "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w==",
 ]
+
+SSH_AGENT_RESPONSE = "\x00\x00\x00\frsa-sha2-256\x00\x00\x01\x00\x15\x93\xA6\\\f\x8E\x04\x06PW\xFB\xB0\xD7\xCF\"\x06X\xC1%s\xA6\xFAo1C\xFF\nLb\xE4\x80l\x195\xC4E\xC6Mf\xF7\x9D\xD7\x8CM\xD6Tl\xB5tT\xFB\xE8\xA7\x9A5i\x8F\b\xDBC\x9A\x9A\xDF\x1Fi\xDA\xE5FE\xB5\xF2\xC8*\xB3\xEF\xEF\x19\xBC\xD1_\xA5\xCCL\xD3w\xD5\x81\xC2\xC7\xCF\xE3gY\xF4\xDF\x95\xF4\x8ERU\xF7\v\xFEU\xAB\xAEZ]\xC9\xB7\xDCx\x90\xB9\x8C\xE7\x0F\xE6\xDC\xDF%u\x94!<\e\xE9\x9D\xC4\xAE\r\xC3Su!\x1F\xD8}\x13J\x96\x95\x81\xAA\x9A#BV\xB0g\xA5\xEE\x92\x8BX\x14\xFC\x99~\xADyQH\xD6\xCB'\x81\xA5\x02\xB0\x0F\xB8\xBF{\xEA$\xD8%<\xC42f\xCBP\x89\xB7%\x16\"\xD3F\e\xD3R\x14\b\"\x9D#\xDD/R\xADG\x1C\xDBeLK\xBD\xDD\x86_A\xA2pG\x15\xE5\x1A@\x8D\xC0\x82^\x7F.=C6\x82 K\xB5^#\xB1\xE4\x99\xFE\xE0i\xA4\xAD\x97!\xFD\x1A\xCA\xF5\\\xD0Yx,\xFB"
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
 
@@ -528,6 +548,8 @@ oVPaHo72GorLkwnQ0HYMTY8rehT4mDi1FI969LHCFFaFHSAaRnwdXaQkJmSfcxzC
 YQIDAQAB
 -----END PUBLIC KEY-----
 EOS
+
+PUBLIC_KEY = OpenSSL::PKey::RSA.new(PUBLIC_KEY_DATA)
 
 PRIVATE_KEY_DATA = <<EOS
 -----BEGIN RSA PRIVATE KEY-----
