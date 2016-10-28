@@ -264,7 +264,7 @@ module Mixlib
               raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set properly! (#{e.class.name}: #{e.message})"
             end
             begin
-              ssh2_signature = agent.sign(keypair.public_key, string_to_sign)
+              ssh2_signature = agent.sign(keypair.public_key, string_to_sign, Net::SSH::Authentication::Agent::SSH_AGENT_RSA_SHA2_256)
             rescue => e
               raise AuthenticationError, "Ssh-agent could not sign your request. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
             end
