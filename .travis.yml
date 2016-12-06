@@ -1,13 +1,23 @@
 sudo: false
 language: ruby
-rvm:
-  - 2.1
-  - 2.2
-  - 2.3.1
+
+before_install:
+  - gem install bundler
+  - bundle --version
+  - gem update --system
+  - gem --version
+
+matrix:
+  include:
+    - rvm: 2.1.10
+    - rvm: 2.2.6
+    - rvm: 2.3.3
+    - rvm: ruby-head
+  allow_failures:
+    - rvm: ruby-head
 
 branches:
   only:
   - master
 
-before_install: gem install bundler -v 1.11.2
 script: bundle exec rake ci

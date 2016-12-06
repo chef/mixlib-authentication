@@ -27,9 +27,7 @@ module Mixlib
         def hash_file(f, digest = OpenSSL::Digest::SHA1)
           digester = digest.new
           buf = ""
-          while f.read(16384, buf)
-            digester.update buf
-          end
+          digester.update buf while f.read(16384, buf)
           ::Base64.encode64(digester.digest).chomp
         end
 

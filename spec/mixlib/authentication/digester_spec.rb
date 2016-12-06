@@ -7,14 +7,14 @@ describe Mixlib::Authentication::Digester do
     let(:test_string) { "hello" }
     let(:test_string_checksum) { "qvTGHdzF6KLavt4PO0gs2a6pQ00=" }
 
-    describe '#hash_file' do
+    describe "#hash_file" do
       it "should default to use SHA1" do
         expect(described_class.hash_file(StringIO.new(test_string))).to(
           eq(test_string_checksum))
       end
     end
 
-    describe '#hash_string' do
+    describe "#hash_string" do
       it "should default to use SHA1" do
         expect(described_class.hash_string(test_string)).to(
           eq(test_string_checksum))
