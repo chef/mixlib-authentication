@@ -263,13 +263,13 @@ module Mixlib
     # A Struct-based value object that contains the necessary information to
     # generate a request signature. `SignedHeaderAuth.signing_object()`
     # provides a more convenient interface to the constructor.
-    class SigningObject < Struct.new(:http_method, :path, :body, :host,
+    SigningObject = Struct.new(:http_method, :path, :body, :host,
                                      :timestamp, :user_id, :file, :proto_version,
-                                     :headers)
+                                     :headers) do
       include SignedHeaderAuth
 
       def proto_version
-        (self[:proto_version] || DEFAULT_PROTO_VERSION).to_s
+        (self[:proto_version] || SignedHeaderAuth::DEFAULT_PROTO_VERSION).to_s
       end
 
       def server_api_version
@@ -279,7 +279,7 @@ module Mixlib
         if key
           self[:headers][key]
         else
-          DEFAULT_SERVER_API_VERSION
+          SignedHeaderAuth::DEFAULT_SERVER_API_VERSION
         end
       end
     end
