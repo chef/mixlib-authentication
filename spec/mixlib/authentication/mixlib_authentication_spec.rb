@@ -63,8 +63,7 @@ class MockFile
 end
 
 # Uncomment this to get some more info from the methods we're testing.
-#Mixlib::Authentication::Log.logger = Logger.new(STDERR)
-#Mixlib::Authentication::Log.level :debug
+#Mixlib::Authentication.logger.level = :debug
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
 
