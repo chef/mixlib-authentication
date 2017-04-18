@@ -166,7 +166,7 @@ module Mixlib
         # Hence, we're going to assume the one that is passed to sign is
         # the correct one and needs to passed through all the functions
         # that do any sort of digest.
-        if @hashed_body_digest != nil && @hashed_body_digest != digest
+        if !@hashed_body_digest.nil? && @hashed_body_digest != digest
           raise "hashed_body must always be called with the same digest"
         else
           @hashed_body_digest = digest
@@ -274,7 +274,7 @@ module Mixlib
 
       def server_api_version
         key = (self[:headers] || {}).keys.select do |k|
-          k.casecmp("x-ops-server-api-version").zero?
+          k.casecmp("x-ops-server-api-version") == 0
         end.first
         if key
           self[:headers][key]
