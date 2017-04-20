@@ -115,7 +115,7 @@ module Mixlib
           header_hash[key] = signature_lines[idx]
         end
 
-        Mixlib::Authentication::Log.debug "Header hash: #{header_hash.inspect}"
+        Mixlib::Authentication.logger.debug "Header hash: #{header_hash.inspect}"
 
         header_hash
       end
@@ -166,7 +166,8 @@ module Mixlib
         # Hence, we're going to assume the one that is passed to sign is
         # the correct one and needs to passed through all the functions
         # that do any sort of digest.
-        if @hashed_body_digest != nil && @hashed_body_digest != digest
+        @hashed_body_digest = nil unless defined?(@hashed_body_digest)
+        if !@hashed_body_digest.nil? && @hashed_body_digest != digest
           raise "hashed_body must always be called with the same digest"
         else
           @hashed_body_digest = digest
@@ -235,7 +236,7 @@ module Mixlib
           memo[field_name.to_sym] = field_value.strip
           memo
         end
-        Mixlib::Authentication::Log.debug "Parsed signing description: #{parts.inspect}"
+        Mixlib::Authentication.logger.debug "Parsed signing description: #{parts.inspect}"
         parts
       end
 
@@ -246,7 +247,7 @@ module Mixlib
       # private
       def do_sign(private_key, digest, sign_algorithm, sign_version)
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
-        Mixlib::Authentication::Log.debug "String to sign: '#{string_to_sign}'"
+        Mixlib::Authentication.logger.debug "String to sign: '#{string_to_sign}'"
         case sign_version
         when "1.3"
           private_key.sign(digest.new, string_to_sign)
@@ -274,7 +275,7 @@ module Mixlib
 
       def server_api_version
         key = (self[:headers] || {}).keys.select do |k|
-          k.casecmp("x-ops-server-api-version").zero?
+          k.casecmp("x-ops-server-api-version") == 0
         end.first
         if key
           self[:headers][key]

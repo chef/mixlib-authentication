@@ -16,11 +16,12 @@
 # limitations under the License.
 #
 
-require "mixlib/log"
-
 module Mixlib
   module Authentication
     DEFAULT_SERVER_API_VERSION = "0"
+
+    attr_accessor :logger
+    module_function :logger, :logger=
 
     class AuthenticationError < StandardError
     end
@@ -29,10 +30,17 @@ module Mixlib
     end
 
     class Log
-      extend Mixlib::Log
     end
 
-    Log.level = :error
+    begin
+      require "mixlib/log"
+      Mixlib::Authentication::Log.extend(Mixlib::Log)
+    rescue LoadError
+      require "mixlib/authentication/null_logger"
+      Mixlib::Authentication::Log.extend(Mixlib::Authentication::NullLogger)
+    end
 
+    Mixlib::Authentication.logger = Mixlib::Authentication::Log
+    Mixlib::Authentication.logger.level = :error
   end
 end

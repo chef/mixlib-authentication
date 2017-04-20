@@ -12,9 +12,6 @@ Gem::Specification.new do |s|
   s.email = "info@chef.io"
   s.homepage = "https://www.chef.io"
 
-  # Uncomment this to add a dependency
-  s.add_dependency "mixlib-log"
-
   s.require_path = "lib"
   s.files = %w{LICENSE README.md Gemfile Rakefile NOTICE} + Dir.glob("*.gemspec") +
     Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
