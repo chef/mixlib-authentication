@@ -267,6 +267,7 @@ module Mixlib
     SigningObject = Struct.new(:http_method, :path, :body, :host,
                                      :timestamp, :user_id, :file, :proto_version,
                                      :headers) do
+
       include SignedHeaderAuth
 
       def proto_version
@@ -280,7 +281,7 @@ module Mixlib
         if key
           self[:headers][key]
         else
-          SignedHeaderAuth::DEFAULT_SERVER_API_VERSION
+          DEFAULT_SERVER_API_VERSION
         end
       end
     end
