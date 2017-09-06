@@ -22,7 +22,6 @@ require "base64"
 require "openssl/digest"
 require "mixlib/authentication"
 require "mixlib/authentication/digester"
-require "net/ssh"
 
 module Mixlib
   module Authentication
@@ -257,24 +256,32 @@ module Mixlib
           if keypair.private?
             keypair.sign(digest.new, string_to_sign)
           else
-            Mixlib::Authentication::Log.debug "No private key supplied, attempt to sign with ssh-agent."
-            begin
-              agent = Net::SSH::Authentication::Agent.connect
-            rescue => e
-              raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set properly! (#{e.class.name}: #{e.message})"
-            end
-            begin
-              ssh2_signature = agent.sign(keypair.public_key, string_to_sign, Net::SSH::Authentication::Agent::SSH_AGENT_RSA_SHA2_256)
-            rescue => e
-              raise AuthenticationError, "Ssh-agent could not sign your request. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
-            end
-            # extract signature from SSH Agent response => skip first 15 bytes for RSA keys
-            # (see http://api.libssh.org/rfc/PROTOCOL.agent for details)
-            ssh2_signature[20..-1]
+            Mixlib::Authentication.logger.debug "No private key supplied, will attempt to sign with ssh-agent."
+            do_sign_ssh_agent(keypair, string_to_sign)
           end
         else
           keypair.private_encrypt(string_to_sign)
         end
+      end
+
+      def do_sign_ssh_agent(keypair, string_to_sign)
+        begin
+          require "net/ssh"
+          agent = Net::SSH::Authentication::Agent.connect
+        rescue LoadError
+          raise AuthenticationError, "net-ssh is not available, unable to sign with ssh-agent and no private key supplied."
+        rescue => e
+          raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set properly! (#{e.class.name}: #{e.message})"
+        end
+
+        begin
+          ssh2_signature = agent.sign(keypair.public_key, string_to_sign, Net::SSH::Authentication::Agent::SSH_AGENT_RSA_SHA2_256)
+        rescue => e
+          raise AuthenticationError, "Unable to sign request with ssh-agent. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
+        end
+        # extract signature from SSH Agent response => skip first 15 bytes for RSA keys
+        # (see http://api.libssh.org/rfc/PROTOCOL.agent for details)
+        ssh2_signature[20..-1]
       end
 
       private :canonical_time, :canonical_path, :parse_signing_description, :digester, :canonicalize_user_id

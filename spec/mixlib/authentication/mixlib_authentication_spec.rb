@@ -138,7 +138,6 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   end
 
   it "should choke when signing a request via ssh-agent and ssh-agent is not reachable with version 1.3" do
-    expect { Net::SSH::Authentication::Agent.connect }.to raise_error(Net::SSH::Authentication::AgentNotAvailable)
     expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY) }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
