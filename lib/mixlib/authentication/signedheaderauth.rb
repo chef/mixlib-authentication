@@ -279,7 +279,8 @@ module Mixlib
         rescue => e
           raise AuthenticationError, "Unable to sign request with ssh-agent. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
         end
-        # extract signature from SSH Agent response => skip first 15 bytes for RSA keys
+        # extract signature from SSH Agent response => skip first 20 bytes for RSA keys
+        # "\x00\x00\x00\frsa-sha2-256\x00\x00\x01\x00"
         # (see http://api.libssh.org/rfc/PROTOCOL.agent for details)
         ssh2_signature[20..-1]
       end
