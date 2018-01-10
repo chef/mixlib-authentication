@@ -22,7 +22,12 @@ module Mixlib
   module Authentication
     class HTTPAuthenticationRequest
 
-      MANDATORY_HEADERS = [:x_ops_sign, :x_ops_userid, :x_ops_timestamp, :host, :x_ops_content_hash]
+      SIGNATURE_DESCRIPTION_HEADER = "x_#{HEADER_BASE}_sign".to_sym
+      USER_ID_HEADER = "x_#{HEADER_BASE}_userid".to_sym
+      TIMESTAMP_HEADER = "x_#{HEADER_BASE}_timestamp".to_sym
+      CONTENT_HASH_HEADER = "x_#{HEADER_BASE}_content_hash".to_sym
+      API_VERSION_HEADER = "x_#{HEADER_BASE}_server_api_version".to_sym
+      MANDATORY_HEADERS = [SIGNATURE_DESCRIPTION_HEADER, USER_ID_HEADER, TIMESTAMP_HEADER, :host, CONTENT_HASH_HEADER]
 
       attr_reader :request
 
@@ -45,15 +50,15 @@ module Mixlib
       end
 
       def signing_description
-        headers[:x_ops_sign].chomp
+        headers[SIGNATURE_DESCRIPTION_HEADER].chomp
       end
 
       def user_id
-        headers[:x_ops_userid].chomp
+        headers[USER_ID_HEADER].chomp
       end
 
       def timestamp
-        headers[:x_ops_timestamp].chomp
+        headers[TIMESTAMP_HEADER].chomp
       end
 
       def host
@@ -61,16 +66,16 @@ module Mixlib
       end
 
       def content_hash
-        headers[:x_ops_content_hash].chomp
+        headers[CONTENT_HASH_HEADER].chomp
       end
 
       def server_api_version
-        (headers[:x_ops_server_api_version] || DEFAULT_SERVER_API_VERSION).chomp
+        (headers[API_VERSION_HEADER] || DEFAULT_SERVER_API_VERSION).chomp
       end
 
       def request_signature
         unless @request_signature
-          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_ops_authorization_/ }
+          @request_signature = headers.find_all { |h| h[0].to_s =~ /^x_#{HEADER_BASE}_authorization_/ }
             .sort { |x, y| x.to_s[/\d+/].to_i <=> y.to_s[/\d+/].to_i }.map { |i| i[1] }.join("\n")
           Mixlib::Authentication::Log.debug "Reconstituted (user-supplied) request signature: #{@request_signature}"
         end

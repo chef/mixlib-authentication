@@ -44,6 +44,8 @@ module Mixlib
       DEFAULT_SIGN_ALGORITHM = "sha1".freeze
       DEFAULT_PROTO_VERSION = "1.0".freeze
 
+      CAPITALIZED_HEADER_BASE = HEADER_BASE.capitalize
+
       # === signing_object
       # This is the intended interface for signing requests with the
       # Opscode/Chef signed header protocol. This wraps the constructor for a
@@ -102,16 +104,16 @@ module Mixlib
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
         header_hash = {
-          "X-Ops-Sign" => "algorithm=#{sign_algorithm};version=#{sign_version};",
-          "X-Ops-Userid" => user_id,
-          "X-Ops-Timestamp" => canonical_time,
-          "X-Ops-Content-Hash" => hashed_body(digest),
+          "X-#{CAPITALIZED_HEADER_BASE}-Sign" => "algorithm=#{sign_algorithm};version=#{sign_version};",
+          "X-#{CAPITALIZED_HEADER_BASE}-Userid" => user_id,
+          "X-#{CAPITALIZED_HEADER_BASE}-Timestamp" => canonical_time,
+          "X-#{CAPITALIZED_HEADER_BASE}-Content-Hash" => hashed_body(digest),
         }
 
         signature = Base64.encode64(do_sign(private_key, digest, sign_algorithm, sign_version)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
-          key = "X-Ops-Authorization-#{idx + 1}"
+          key = "X-#{ CAPITALIZED_HEADER_BASE }-Authorization-#{idx + 1}"
           header_hash[key] = signature_lines[idx]
         end
 
@@ -198,19 +200,19 @@ module Mixlib
           [
             "Method:#{http_method.to_s.upcase}",
             "Path:#{canonical_path}",
-            "X-Ops-Content-Hash:#{hashed_body(digest)}",
-            "X-Ops-Sign:version=#{sign_version}",
-            "X-Ops-Timestamp:#{canonical_time}",
-            "X-Ops-UserId:#{canonical_x_ops_user_id}",
-            "X-Ops-Server-API-Version:#{server_api_version}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Content-Hash:#{hashed_body(digest)}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Sign:version=#{sign_version}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Timestamp:#{canonical_time}",
+            "X-#{CAPITALIZED_HEADER_BASE}-UserId:#{canonical_x_ops_user_id}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Server-API-Version:#{server_api_version}",
           ].join("\n")
         else
           [
             "Method:#{http_method.to_s.upcase}",
             "Hashed Path:#{digester.hash_string(canonical_path, digest)}",
-            "X-Ops-Content-Hash:#{hashed_body(digest)}",
-            "X-Ops-Timestamp:#{canonical_time}",
-            "X-Ops-UserId:#{canonical_x_ops_user_id}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Content-Hash:#{hashed_body(digest)}",
+            "X-#{CAPITALIZED_HEADER_BASE}-Timestamp:#{canonical_time}",
+            "X-#{CAPITALIZED_HEADER_BASE}-UserId:#{canonical_x_ops_user_id}",
           ].join("\n")
         end
       end
@@ -276,7 +278,7 @@ module Mixlib
 
       def server_api_version
         key = (self[:headers] || {}).keys.select do |k|
-          k.casecmp("x-ops-server-api-version") == 0
+          k.casecmp("x-#{HEADER_BASE}-server-api-version") == 0
         end.first
         if key
           self[:headers][key]

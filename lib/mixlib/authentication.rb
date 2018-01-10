@@ -19,6 +19,7 @@
 module Mixlib
   module Authentication
     DEFAULT_SERVER_API_VERSION = "0"
+    HEADER_BASE = ENV["HEADER_BASE"] || "ops"
 
     attr_accessor :logger
     module_function :logger, :logger=

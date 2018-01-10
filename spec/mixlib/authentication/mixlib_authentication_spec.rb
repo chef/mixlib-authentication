@@ -131,6 +131,39 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     expect { V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha_poo", "1.1") }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
+  context "when ENV['HEADER_BASE'] is set" do
+
+    def reload
+      ["DEFAULT_SERVER_API_VERSION", "Log", "HEADER_BASE", "SigningObject"].each do | const |
+        Mixlib::Authentication.send(:remove_const, const)
+      end
+
+      ["NULL_ARG", "ALGORITHM_FOR_VERSION", "SUPPORTED_ALGORITHMS", "SUPPORTED_VERSIONS", "DEFAULT_SIGN_ALGORITHM",
+       "DEFAULT_PROTO_VERSION", "CAPITALIZED_HEADER_BASE"].each do | const |
+        Mixlib::Authentication::SignedHeaderAuth.send(:remove_const, const)
+      end
+
+      load "mixlib/authentication.rb"
+      load "mixlib/authentication/signedheaderauth.rb"
+    end
+
+    before( :example ) do
+      ENV["HEADER_BASE"] = 'foo'
+      reload
+    end
+
+    after( :example ) do
+      ENV["HEADER_BASE"] = nil
+      reload
+    end
+
+    it 'should use the value specified in the headers' do
+      signing_object = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256_CUSTOM_HEADER_BASE)
+      expect(signing_object.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256_CUSTOM_HEADER_BASE)
+    end
+
+  end
+
 end
 
 describe "Mixlib::Authentication::SignatureVerification" do
@@ -280,6 +313,55 @@ describe "Mixlib::Authentication::SignatureVerification" do
     expect(auth_req).to be_a_valid_timestamp
     expect(auth_req).to be_a_valid_content_hash
   end
+
+  context "when ENV['HEADER_BASE'] is specified" do
+
+    def reload
+      ["DEFAULT_SERVER_API_VERSION", "Log", "HEADER_BASE", "SigningObject"].each do | const |
+        Mixlib::Authentication.send(:remove_const, const)
+      end
+
+      ["NULL_ARG", "ALGORITHM_FOR_VERSION", "SUPPORTED_ALGORITHMS", "SUPPORTED_VERSIONS", "DEFAULT_SIGN_ALGORITHM",
+       "DEFAULT_PROTO_VERSION", "CAPITALIZED_HEADER_BASE"].each do | const |
+        Mixlib::Authentication::SignedHeaderAuth.send(:remove_const, const)
+      end
+
+      ["SIGNATURE_DESCRIPTION_HEADER", "USER_ID_HEADER", "TIMESTAMP_HEADER", "CONTENT_HASH_HEADER",
+       "API_VERSION_HEADER", "MANDATORY_HEADERS" ].each do | const |
+        Mixlib::Authentication::HTTPAuthenticationRequest.send(:remove_const, const)
+      end
+
+      load "mixlib/authentication.rb"
+      load "mixlib/authentication/signedheaderauth.rb"
+      load "mixlib/authentication/http_authentication_request.rb"
+    end
+
+    before( :example ) do
+      ENV["HEADER_BASE"] = 'foo'
+      reload
+    end
+
+    after( :example ) do
+      ENV["HEADER_BASE"] = nil
+      reload
+    end
+
+    it "should respect its value" do
+      # signing_object = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256_CUSTOM_HEADER_BASE)
+      signed_request = V1_3_SHA256_CUSTOM_HEADER_BASE_SIGNING_OBJECT.sign(PRIVATE_KEY)
+      # require 'byebug'; byebug
+      expect(signed_request).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256_CUSTOM_HEADER_BASE)
+
+      mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, MERB_CUSTOM_HEADERS_V1_3_SHA256, BODY)
+      expect(Time).to receive(:now).at_least(:once).and_return(TIMESTAMP_OBJ)
+
+      service = Mixlib::Authentication::SignatureVerification.new
+      res = service.authenticate_user_request(mock_request, @user_private_key)
+      expect(res).not_to be_nil
+    end
+
+  end
+
 end
 
 USER_ID = "spec-user"
@@ -325,6 +407,19 @@ V1_3_ARGS_SHA256 = {
   # This defaults to sha256
 }
 
+V1_3_ARGS_SHA256_CUSTOM_HEADER_BASE = {
+  :body => BODY,
+  :user_id => USER_ID,
+  :http_method => :post,
+  :timestamp => TIMESTAMP_ISO8601,
+  :path => PATH,
+  :proto_version => "1.3",
+  :headers => {
+    "X-FoO-SeRvEr-ApI-VerSiOn" => "1",
+  }
+  # This defaults to sha256
+}
+
 LONG_PATH_LONG_USER_ARGS = {
   :body => BODY,
   :user_id => "A" * 200,
@@ -365,6 +460,15 @@ X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "H9h9E0qWlYGqmiNCVrBnpe6Si1gU/Jl+rXlRSNbLJ4GlArAPuL976iTYJTzE",
   "MmbLUIm3JRYi00Yb01IUCCKdI90vUq1HHNtlTEu93YZfQaJwRxXlGkCNwIJe",
   "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w==",
+]
+
+X_FOO_AUTHORIZATION_LINES_V1_3_SHA256 = [
+  "jXJCXEDxKqSTwZyKk+X1VHW9btTLNg5aoYxEBhwfqdOEngifbGF7nnmzDjIN",
+  "zhX4+Rnsocr2+hcP57uBy13jEl3iogJo6Xbh0o7eMyjcqynjSS0sYK4PaX/K",
+  "vWhpTlg2BIuYff+oVVKU8rWUS+U+58GZbBp9Ti0BTdvs2SMLBvuR0himl+vS",
+  "m74knAR+VKwT00DqYMWiLJizFDsfrZvUQT0eQ6BDSAjqMDk8BbPalpAuG2uA",
+  "FU22FYEqwHQgdyDQXi2LhVBbTv76iqB7qLEaOg64icRS1QQQ/Mc5nqpF+c5b",
+  "L+wAUkJukA+ex326vE9FoBg+xCGvP8EJYjbqNKPRrQ==",
 ]
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
@@ -408,6 +512,19 @@ EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
   "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
 }
 
+EXPECTED_SIGN_RESULT_V1_3_SHA256_CUSTOM_HEADER_BASE = {
+  "X-Foo-Content-Hash" => X_OPS_CONTENT_HASH_SHA256,
+  "X-Foo-Userid" => USER_ID,
+  "X-Foo-Sign" => "algorithm=sha256;version=1.3;",
+  "X-Foo-Authorization-1" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "X-Foo-Authorization-2" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "X-Foo-Authorization-3" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "X-Foo-Authorization-4" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "X-Foo-Authorization-5" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "X-Foo-Authorization-6" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[5],
+  "X-Foo-Timestamp" => TIMESTAMP_ISO8601,
+}
+
 OTHER_HEADERS = {
   # An arbitrary sampling of non-HTTP_* headers are in here to
   # exercise that code path.
@@ -423,6 +540,23 @@ MERB_REQUEST_PARAMS = {
   "name" => "zsh", "action" => "create", "controller" => "chef_server_api/cookbooks",
   "organization_id" => "local-test-org", "requesting_actor_id" => REQUESTING_ACTOR_ID
 }
+
+MERB_CUSTOM_HEADERS_V1_3_SHA256 = {
+  # These are used by signatureverification.
+  "HTTP_HOST" => "127.0.0.1",
+  "HTTP_X_FOO_SIGN" => "algorithm=sha256;version=1.3;",
+  "HTTP_X_FOO_REQUESTID" => "127.0.0.1 1258566194.85386",
+  "HTTP_X_FOO_TIMESTAMP" => TIMESTAMP_ISO8601,
+  "HTTP_X_FOO_CONTENT_HASH" => X_OPS_CONTENT_HASH_SHA256,
+  "HTTP_X_FOO_USERID" => USER_ID,
+  "HTTP_X_FOO_SERVER_API_VERSION" => "1",
+  "HTTP_X_FOO_AUTHORIZATION_1" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[0],
+  "HTTP_X_FOO_AUTHORIZATION_2" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[1],
+  "HTTP_X_FOO_AUTHORIZATION_3" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[2],
+  "HTTP_X_FOO_AUTHORIZATION_4" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[3],
+  "HTTP_X_FOO_AUTHORIZATION_5" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[4],
+  "HTTP_X_FOO_AUTHORIZATION_6" => X_FOO_AUTHORIZATION_LINES_V1_3_SHA256[5],
+}.merge(OTHER_HEADERS)
 
 MERB_HEADERS_V1_3_SHA256 = {
   # These are used by signatureverification.
@@ -590,6 +724,8 @@ X-Ops-Server-API-Version:1
 EOS
 V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
 
+V1_3_SHA256_CUSTOM_HEADER_BASE_SIGNING_OBJECT =
+  Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256_CUSTOM_HEADER_BASE)
 V1_3_SHA256_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_3_ARGS_SHA256)
 V1_1_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_1_ARGS)
 V1_0_SIGNING_OBJECT = Mixlib::Authentication::SignedHeaderAuth.signing_object(V1_0_ARGS)

@@ -129,4 +129,73 @@ SIG
     expect(@http_authentication_request.server_api_version).to eq("0")
   end
 
+  context "when ENV['HEADER_BASE'] is specified" do
+
+    def reload
+      Mixlib::Authentication.send(:remove_const, "DEFAULT_SERVER_API_VERSION")
+      Mixlib::Authentication.send(:remove_const, "Log")
+      Mixlib::Authentication.send(:remove_const, "HEADER_BASE")
+
+      ["SIGNATURE_DESCRIPTION_HEADER", "USER_ID_HEADER", "TIMESTAMP_HEADER", "CONTENT_HASH_HEADER",
+       "API_VERSION_HEADER", "MANDATORY_HEADERS" ].each do | const |
+        Mixlib::Authentication::HTTPAuthenticationRequest.send(:remove_const, const)
+      end
+
+      load "mixlib/authentication.rb"
+      load "mixlib/authentication/http_authentication_request.rb"
+    end
+
+    before( :example ) do
+      ENV["HEADER_BASE"] = 'foo'
+      reload
+    end
+
+    after( :example ) do
+      ENV["HEADER_BASE"] = nil
+      reload
+    end
+
+    it "uses the value specified in ENV['HEADER_BASE'] to determine the name of the headers" do
+      request_headers = {
+        # These are used by signatureverification. An arbitrary sampling of non-HTTP_*
+        # headers are in here to exercise that code path.
+        "HTTP_HOST" => "127.0.0.1",
+        "HTTP_X_FOO_SIGN" => "version=1.0",
+        "HTTP_X_FOO_REQUESTID" => "127.0.0.1 1258566194.85386",
+        "HTTP_X_FOO_TIMESTAMP" => @timestamp_iso8601,
+        "HTTP_X_FOO_CONTENT_HASH" => @x_ops_content_hash,
+        "HTTP_X_FOO_USERID" => @user_id,
+        "HTTP_X_FOO_AUTHORIZATION_1" => @http_x_ops_lines[0],
+        "HTTP_X_FOO_AUTHORIZATION_2" => @http_x_ops_lines[1],
+        "HTTP_X_FOO_AUTHORIZATION_3" => @http_x_ops_lines[2],
+        "HTTP_X_FOO_AUTHORIZATION_4" => @http_x_ops_lines[3],
+        "HTTP_X_FOO_AUTHORIZATION_5" => @http_x_ops_lines[4],
+        "HTTP_X_FOO_AUTHORIZATION_6" => @http_x_ops_lines[5],
+
+        # Random sampling
+        "REMOTE_ADDR" => "127.0.0.1",
+        "PATH_INFO" => "/organizations/local-test-org/cookbooks",
+        "REQUEST_PATH" => "/organizations/local-test-org/cookbooks",
+        "CONTENT_TYPE" => "multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
+        "CONTENT_LENGTH" => "394",
+      }
+      request = Struct.new(:env, :method, :path).new(request_headers, "POST", "/nodes")
+      http_authentication_request = Mixlib::Authentication::HTTPAuthenticationRequest.new(request)
+      expected = { :host => "127.0.0.1",
+                   :x_foo_sign => "version=1.0",
+                   :x_foo_requestid => "127.0.0.1 1258566194.85386",
+                   :x_foo_timestamp => "2009-01-01T12:00:00Z",
+                   :x_foo_content_hash => "DFteJZPVv6WKdQmMqZUQUumUyRs=",
+                   :x_foo_userid => "spec-user",
+                   :x_foo_authorization_1 => "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
+                   :x_foo_authorization_2 => "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
+                   :x_foo_authorization_3 => "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
+                   :x_foo_authorization_4 => "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
+                   :x_foo_authorization_5 => "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
+                   :x_foo_authorization_6 => "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==" }
+      expect(http_authentication_request.headers).to eq(expected)
+    end
+
+  end
+
 end

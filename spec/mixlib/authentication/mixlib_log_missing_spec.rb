@@ -2,6 +2,7 @@ describe "Mixlib::Authentication::Log" do
   before do
     Mixlib::Authentication.send(:remove_const, "DEFAULT_SERVER_API_VERSION")
     Mixlib::Authentication.send(:remove_const, "Log")
+    Mixlib::Authentication.send(:remove_const, "HEADER_BASE")
   end
 
   context "without mixlib-log" do
