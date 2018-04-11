@@ -76,7 +76,7 @@ module Mixlib
       # X-Ops-Content-Hash:
       # X-Ops-Authorization-#{line_number}
       def authenticate_request(user_secret, time_skew = (15 * 60))
-        Mixlib::Authentication.logger.debug "Initializing header auth : #{request.inspect}"
+        Mixlib::Authentication.logger.trace "Initializing header auth : #{request.inspect}"
 
         @user_secret       = user_secret
         @allowed_time_skew = time_skew # in seconds
@@ -149,15 +149,15 @@ module Mixlib
                              (request_decrypted_block == candidate_block)
                            end
 
-        # Keep the debug messages lined up so it's easy to scan them
-        Mixlib::Authentication.logger.debug("Verifying request signature:")
-        Mixlib::Authentication.logger.debug(" Expected Block is: '#{candidate_block}'")
-        Mixlib::Authentication.logger.debug("Decrypted block is: '#{request_decrypted_block}'")
-        Mixlib::Authentication.logger.debug("Signatures match? : '#{@valid_signature}'")
+        # Keep the trace messages lined up so it's easy to scan them
+        Mixlib::Authentication.logger.trace("Verifying request signature:")
+        Mixlib::Authentication.logger.trace(" Expected Block is: '#{candidate_block}'")
+        Mixlib::Authentication.logger.trace("Decrypted block is: '#{request_decrypted_block}'")
+        Mixlib::Authentication.logger.trace("Signatures match? : '#{@valid_signature}'")
 
         @valid_signature
       rescue => e
-        Mixlib::Authentication.logger.debug("Failed to verify request signature: #{e.class.name}: #{e.message}")
+        Mixlib::Authentication.logger.trace("Failed to verify request signature: #{e.class.name}: #{e.message}")
         @valid_signature = false
       end
 
@@ -168,10 +168,10 @@ module Mixlib
       def verify_content_hash
         @valid_content_hash = (content_hash == hashed_body)
 
-        # Keep the debug messages lined up so it's easy to scan them
-        Mixlib::Authentication.logger.debug("Expected content hash is: '#{hashed_body}'")
-        Mixlib::Authentication.logger.debug(" Request Content Hash is: '#{content_hash}'")
-        Mixlib::Authentication.logger.debug("           Hashes match?: #{@valid_content_hash}")
+        # Keep the trace messages lined up so it's easy to scan them
+        Mixlib::Authentication.logger.trace("Expected content hash is: '#{hashed_body}'")
+        Mixlib::Authentication.logger.trace(" Request Content Hash is: '#{content_hash}'")
+        Mixlib::Authentication.logger.trace("           Hashes match?: #{@valid_content_hash}")
 
         @valid_content_hash
       end
@@ -211,11 +211,11 @@ module Mixlib
           # Any file that's included in the request is hashed if it's there. Otherwise,
           # we hash the body.
           if file_param
-            Mixlib::Authentication.logger.debug "Digesting file_param: '#{file_param.inspect}'"
+            Mixlib::Authentication.logger.trace "Digesting file_param: '#{file_param.inspect}'"
             @hashed_body = digester.hash_file(file_param, digest)
           else
             body = request.raw_post
-            Mixlib::Authentication.logger.debug "Digesting body: '#{body}'"
+            Mixlib::Authentication.logger.trace "Digesting body: '#{body}'"
             @hashed_body = digester.hash_string(body, digest)
           end
         end
@@ -232,7 +232,7 @@ module Mixlib
       def timestamp_within_bounds?(time1, time2)
         time_diff = (time2 - time1).abs
         is_allowed = (time_diff < @allowed_time_skew)
-        Mixlib::Authentication.logger.debug "Request time difference: #{time_diff}, within #{@allowed_time_skew} seconds? : #{!!is_allowed}"
+        Mixlib::Authentication.logger.trace "Request time difference: #{time_diff}, within #{@allowed_time_skew} seconds? : #{!!is_allowed}"
         is_allowed
       end
     end
