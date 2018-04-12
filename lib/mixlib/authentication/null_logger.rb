@@ -4,7 +4,7 @@ module Mixlib
 
       attr_accessor :level
 
-      %i{debug info warn error fatal}.each do |method_name|
+      %i{trace debug info warn error fatal}.each do |method_name|
         class_eval(<<-METHOD_DEFN, __FILE__, __LINE__)
           def #{method_name}(msg=nil, &block)
             true
@@ -12,7 +12,7 @@ module Mixlib
         METHOD_DEFN
       end
 
-      %i{debug? info? warn? error? fatal?}.each do |method_name|
+      %i{trace? debug? info? warn? error? fatal?}.each do |method_name|
         class_eval(<<-METHOD_DEFN, __FILE__, __LINE__)
           def #{method_name}
             false

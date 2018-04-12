@@ -25,7 +25,7 @@ describe "Mixlib::Authentication::Log" do
       expect(Mixlib::Authentication::Log.level).to eq(:error)
     end
 
-    %w{debug info warn error fatal}.each do |level|
+    %w{trace debug info warn error fatal}.each do |level|
       it "logs at level #{level}" do
         expect(Mixlib::Authentication::Log).to receive(level).with("foo")
 
@@ -44,9 +44,9 @@ describe "Mixlib::Authentication::Log" do
         .to include(Mixlib::Log)
     end
 
-    %w{debug info warn error fatal}.each do |level|
+    %w{trace debug info warn error fatal}.each do |level|
       it "forward #{level} to mixlib-log" do
-        expect(Mixlib::Authentication::Log.logger).to receive(level).with("foo")
+        expect_any_instance_of(Mixlib::Log).to receive(level).with("foo")
 
         Mixlib::Authentication.logger.send(level, "foo")
       end
