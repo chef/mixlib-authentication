@@ -1,7 +1,12 @@
 # mixlib-authentication Changelog
 
-## Unreleased
+<!-- latest_release -->
+<!-- latest_release -->
 
+<!-- release_rollup -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
 ## 1.4.2 (2017-08-17)
 
 - fix bug in ordering x_ops_authorization_n headers when headers
@@ -9,6 +14,7 @@
 - fix bug where a constant lookup fails when vendored into other
   projects [#24]
 - make mixlib-log optional [#21]
+<!-- latest_stable_release -->
 
 ## 1.4.1 (2016-06-08)
 
