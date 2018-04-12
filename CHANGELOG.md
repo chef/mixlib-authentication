@@ -1,20 +1,18 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 1.4.3 -->
+<!-- latest_release -->
+<!-- latest_release -->
+
+<!-- release_rollup -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
 ## [v1.4.3](https://github.com/chef/mixlib-authentication/tree/v1.4.3) (2018-04-12)
 
 #### Merged Pull Requests
 - Move mixlib-auth debugging to trace level [#32](https://github.com/chef/mixlib-authentication/pull/32) ([thommay](https://github.com/thommay))
-<!-- latest_release -->
-
-<!-- release_rollup since=1.4.2 -->
-### Changes since 1.4.2 release
-
-#### Merged Pull Requests
-- Move mixlib-auth debugging to trace level [#32](https://github.com/chef/mixlib-authentication/pull/32) ([thommay](https://github.com/thommay)) <!-- 1.4.3 -->
-<!-- release_rollup -->
-
 <!-- latest_stable_release -->
+
 ## 1.4.2 (2017-08-17)
 
 - fix bug in ordering x_ops_authorization_n headers when headers
@@ -22,7 +20,6 @@
 - fix bug where a constant lookup fails when vendored into other
   projects [#24]
 - make mixlib-log optional [#21]
-<!-- latest_stable_release -->
 
 ## 1.4.1 (2016-06-08)
 
