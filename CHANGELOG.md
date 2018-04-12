@@ -7,7 +7,7 @@
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
-## [v1.4.3](https://github.com/chef/mixlib-authentication/tree/v1.4.3) (2018-04-12)
+## [v1.5.0](https://github.com/chef/mixlib-authentication/tree/v1.5.0) (2018-04-12)
 
 #### Merged Pull Requests
 - Move mixlib-auth debugging to trace level [#32](https://github.com/chef/mixlib-authentication/pull/32) ([thommay](https://github.com/thommay))
