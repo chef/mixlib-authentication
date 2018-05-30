@@ -118,7 +118,7 @@ module Mixlib
           header_hash[key] = signature_lines[idx]
         end
 
-        Mixlib::Authentication.logger.debug "Header hash: #{header_hash.inspect}"
+        Mixlib::Authentication.logger.trace "Header hash: #{header_hash.inspect}"
 
         header_hash
       end
@@ -239,7 +239,7 @@ module Mixlib
           memo[field_name.to_sym] = field_value.strip
           memo
         end
-        Mixlib::Authentication.logger.debug "Parsed signing description: #{parts.inspect}"
+        Mixlib::Authentication.logger.trace "Parsed signing description: #{parts.inspect}"
         parts
       end
 
@@ -260,7 +260,7 @@ module Mixlib
       # @return [String]
       def do_sign(rsa_key, digest, sign_algorithm, sign_version, use_ssh_agent)
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
-        Mixlib::Authentication.logger.debug "String to sign: '#{string_to_sign}'"
+        Mixlib::Authentication.logger.trace "String to sign: '#{string_to_sign}'"
         case sign_version
         when "1.3"
           if use_ssh_agent

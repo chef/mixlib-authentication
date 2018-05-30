@@ -3,6 +3,6 @@ gemspec
 
 group(:development) do
   gem "pry"
-  gem "mixlib-log"
+  gem "mixlib-log", "~> 2"
   gem "net-ssh"
 end
