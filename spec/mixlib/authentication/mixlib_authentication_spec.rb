@@ -121,14 +121,17 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
     expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, algorithm, version)).to eq(EXPECTED_SIGN_RESULT_V1_1)
+    expect(V1_1_SIGNING_OBJECT.sign(PRIVATE_KEY, sign_algorithm: algorithm, sign_version: version)).to eq(EXPECTED_SIGN_RESULT_V1_1)
   end
 
   it "should not choke when signing a request for a long user id with version 1.1" do
     expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha1", "1.1") }.not_to raise_error
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, sign_algorithm: "sha1", sign_version: "1.1") }.not_to raise_error
   end
 
   it "should choke when signing a request for a long user id with version 1.0" do
     expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, "sha1", "1.0") }.to raise_error(OpenSSL::PKey::RSAError)
+    expect { LONG_SIGNING_OBJECT.sign(PRIVATE_KEY, sign_algorithm: "sha1", sign_version: "1.0") }.to raise_error(OpenSSL::PKey::RSAError)
   end
 
   it "should choke when signing a request with a bad version" do

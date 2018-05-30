@@ -100,7 +100,22 @@ module Mixlib
       #   true, this must have the public key portion populated. If `use_ssh_agent`
       #   is false, this must have the private key portion populated.
       # @param use_ssh_agent [Boolean] If true, use ssh-agent for request signing.
-      def sign(rsa_key, sign_algorithm = algorithm, sign_version = proto_version, use_ssh_agent: false)
+      def sign(rsa_key, sign_algorithm = algorithm, sign_version = proto_version, **opts)
+        # Backwards compat stuff.
+        if sign_algorithm.is_a?(Hash)
+          # Was called like sign(key, sign_algorithm: 'foo', other: 'bar')
+          opts.update(sign_algorithm)
+          opts[:sign_algorithm] ||= algorithm
+        else
+          # Was called like sign(key, 'foo', '1.3', other: 'bar')
+          Mixlib::Authentication.logger.warn("Using deprecated positional arguments for sign(), please update to keyword arguments (from #{caller[1][/^(.*:\d+):in /, 1]})")
+          opts[:sign_algorithm] ||= sign_algorithm
+          opts[:sign_version] ||= sign_version
+        end
+        sign_algorithm = opts[:sign_algorithm]
+        sign_version = opts[:sign_version]
+        use_ssh_agent = opts[:use_ssh_agent]
+
         digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
