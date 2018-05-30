@@ -100,11 +100,13 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
     # the results of res.inspect and copy them as appropriate into the
     # the constants in this file.
     expect(V1_3_SHA256_SIGNING_OBJECT.sign(PRIVATE_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
+  end
 
+  it "should generate the correct string to sign and signature for version 1.3 with SHA256 via ssh-agent" do
     agent = double("ssh-agent")
-    allow(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
-    allow(agent).to receive(:sign).and_return(SSH_AGENT_RESPONSE)
-    expect(V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
+    expect(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
+    expect(agent).to receive(:sign).and_return(SSH_AGENT_RESPONSE)
+    expect(V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY, use_ssh_agent: true)).to eq(EXPECTED_SIGN_RESULT_V1_3_SHA256)
   end
 
   it "should generate the correct string to sign and signature for non-default proto version when used as a mixin" do
@@ -138,14 +140,15 @@ describe "Mixlib::Authentication::SignedHeaderAuth" do
   end
 
   it "should choke when signing a request via ssh-agent and ssh-agent is not reachable with version 1.3" do
-    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY) }.to raise_error(Mixlib::Authentication::AuthenticationError)
+    expect(Net::SSH::Authentication::Agent).to receive(:connect).and_raise(Net::SSH::Authentication::AgentNotAvailable)
+    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY, use_ssh_agent: true) }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
   it "should choke when signing a request via ssh-agent and the key is not loaded with version 1.3" do
     agent = double("ssh-agent")
-    allow(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
-    allow(agent).to receive(:sign).and_raise(Net::SSH::Authentication::AgentError)
-    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY) }.to raise_error(Mixlib::Authentication::AuthenticationError)
+    expect(Net::SSH::Authentication::Agent).to receive(:connect).and_return(agent)
+    expect(agent).to receive(:sign).and_raise(Net::SSH::Authentication::AgentError)
+    expect { V1_3_SHA256_SIGNING_OBJECT.sign(PUBLIC_KEY, use_ssh_agent: true) }.to raise_error(Mixlib::Authentication::AuthenticationError)
   end
 
 end

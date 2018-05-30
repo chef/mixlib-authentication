@@ -95,12 +95,12 @@ module Mixlib
 
       # Build the canonicalized request based on the method, other headers, etc.
       # compute the signature from the request, using the looked-up user secret
-      # ====Parameters
-      # keypair<OpenSSL::PKey::RSA>:: user's RSA keypair. The OpenSSL::PKey::RSA
-      # container can either be filled with a private/public keypair or just a
-      # public key. From x-ops protocol version 1.3 on the sign method will look
-      # out to sign the request via a ssh-agent, if only a public key is present.
-      def sign(keypair, sign_algorithm = algorithm, sign_version = proto_version)
+      #
+      # @param rsa_key [OpenSSL::PKey::RSA] User's RSA key. If `use_ssh_agent` is
+      #   true, this must have the public key portion populated. If `use_ssh_agent`
+      #   is false, this must have the private key portion populated.
+      # @param use_ssh_agent [Boolean] If true, use ssh-agent for request signing.
+      def sign(rsa_key, sign_algorithm = algorithm, sign_version = proto_version, use_ssh_agent: false)
         digest = validate_sign_version_digest!(sign_algorithm, sign_version)
         # Our multiline hash for authorization will be encoded in multiple header
         # lines - X-Ops-Authorization-1, ... (starts at 1, not 0!)
@@ -111,7 +111,7 @@ module Mixlib
           "X-Ops-Content-Hash" => hashed_body(digest),
         }
 
-        signature = Base64.encode64(do_sign(keypair, digest, sign_algorithm, sign_version)).chomp
+        signature = Base64.encode64(do_sign(rsa_key, digest, sign_algorithm, sign_version, use_ssh_agent)).chomp
         signature_lines = signature.split(/\n/)
         signature_lines.each_index do |idx|
           key = "X-Ops-Authorization-#{idx + 1}"
@@ -247,38 +247,67 @@ module Mixlib
         Mixlib::Authentication::Digester
       end
 
-      # private
-      def do_sign(keypair, digest, sign_algorithm, sign_version)
+      # Low-level RSA signature implementation used in {#sign}.
+      #
+      # @api private
+      # @param rsa_key [OpenSSL::PKey::RSA] User's RSA key. If `use_ssh_agent` is
+      #   true, this must have the public key portion populated. If `use_ssh_agent`
+      #   is false, this must have the private key portion populated.
+      # @param digest [Class] Sublcass of OpenSSL::Digest to use while signing.
+      # @param sign_algorithm [String] Hash algorithm to use while signing.
+      # @param sign_version [String] Version number of the signing protocol to use.
+      # @param use_ssh_agent [Boolean] If true, use ssh-agent for request signing.
+      # @return [String]
+      def do_sign(rsa_key, digest, sign_algorithm, sign_version, use_ssh_agent)
         string_to_sign = canonicalize_request(sign_algorithm, sign_version)
         Mixlib::Authentication.logger.debug "String to sign: '#{string_to_sign}'"
         case sign_version
         when "1.3"
-          if keypair.private?
-            keypair.sign(digest.new, string_to_sign)
+          if use_ssh_agent
+            do_sign_ssh_agent(rsa_key, string_to_sign)
           else
-            Mixlib::Authentication.logger.debug "No private key supplied, will attempt to sign with ssh-agent."
-            do_sign_ssh_agent(keypair, string_to_sign)
+            raise AuthenticationError, "RSA private key is required to sign requests, but a public key was provided" unless rsa_key.private?
+            rsa_key.sign(digest.new, string_to_sign)
           end
         else
-          keypair.private_encrypt(string_to_sign)
+          raise AuthenticationError, "Agent signing mode requires signing protocol version 1.3 or newer" if use_ssh_agent
+          raise AuthenticationError, "RSA private key is required to sign requests, but a public key was provided" unless rsa_key.private?
+          rsa_key.private_encrypt(string_to_sign)
         end
       end
 
-      def do_sign_ssh_agent(keypair, string_to_sign)
+      # Low-level signing logic for using ssh-agent. This requires the user has
+      # already set up ssh-agent and used ssh-add to load in a (possibly encrypted)
+      # RSA private key. ssh-agent supports keys other than RSA, however they
+      # are not supported as Chef's protocol explicitly requires RSA keys/sigs.
+      #
+      # @api private
+      # @param rsa_key [OpenSSL::PKey::RSA] User's RSA public key.
+      # @param string_to_sign [String] String data to sign with the requested key.
+      # @return [String]
+      def do_sign_ssh_agent(rsa_key, string_to_sign)
+        # First try loading net-ssh as it is an optional dependency.
         begin
           require "net/ssh"
+        rescue LoadError => e
+          # ???: Since agent mode is explicitly enabled, should we even catch
+          # this in the first place? Might be cleaner to let the LoadError bubble.
+          raise AuthenticationError, "net-ssh gem is not available, unable to use ssh-agent signing: #{e.message}"
+        end
+
+        # Try to connect to ssh-agent.
+        begin
           agent = Net::SSH::Authentication::Agent.connect
-        rescue LoadError
-          raise AuthenticationError, "net-ssh is not available, unable to sign with ssh-agent and no private key supplied."
-        rescue => e
-          raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set properly! (#{e.class.name}: #{e.message})"
+        rescue Net::SSH::Authentication::AgentNotAvailable => e
+          raise AuthenticationError, "Could not connect to ssh-agent. Make sure the SSH_AUTH_SOCK environment variable is set and ssh-agent is running: #{e.message}"
         end
 
         begin
-          ssh2_signature = agent.sign(keypair.public_key, string_to_sign, Net::SSH::Authentication::Agent::SSH_AGENT_RSA_SHA2_256)
-        rescue => e
-          raise AuthenticationError, "Unable to sign request with ssh-agent. Make sure your key is loaded with ssh-add! (#{e.class.name}: #{e.message})"
+          ssh2_signature = agent.sign(rsa_key.public_key, string_to_sign, Net::SSH::Authentication::Agent::SSH_AGENT_RSA_SHA2_256)
+        rescue Net::SSH::Authentication::AgentError => e
+          raise AuthenticationError, "Unable to sign request with ssh-agent. Make sure your key is loaded with ssh-add: #{e.class.name} #{e.message})"
         end
+
         # extract signature from SSH Agent response => skip first 20 bytes for RSA keys
         # "\x00\x00\x00\frsa-sha2-256\x00\x00\x01\x00"
         # (see http://api.libssh.org/rfc/PROTOCOL.agent for details)
