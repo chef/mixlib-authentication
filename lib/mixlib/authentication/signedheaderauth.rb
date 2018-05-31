@@ -106,6 +106,7 @@ module Mixlib
           # Was called like sign(key, sign_algorithm: 'foo', other: 'bar')
           opts.update(sign_algorithm)
           opts[:sign_algorithm] ||= algorithm
+          opts[:sign_version] ||= sign_version
         else
           # Was called like sign(key, 'foo', '1.3', other: 'bar')
           Mixlib::Authentication.logger.warn("Using deprecated positional arguments for sign(), please update to keyword arguments (from #{caller[1][/^(.*:\d+):in /, 1]})")
