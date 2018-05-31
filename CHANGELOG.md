@@ -7,21 +7,23 @@
 - bump version to 2.1.0 [#38](https://github.com/chef/mixlib-authentication/pull/38) ([thommay](https://github.com/thommay))
 <!-- latest_release -->
 
-<!-- release_rollup since=2.0.0 -->
-### Changes since 2.0.0 release
-
-#### Merged Pull Requests
-- bump version to 2.1.0 [#38](https://github.com/chef/mixlib-authentication/pull/38) ([thommay](https://github.com/thommay)) <!-- 2.1.0 -->
-- Forgot to put sign_version in the opts which would make it nil when p… [#37](https://github.com/chef/mixlib-authentication/pull/37) ([coderanger](https://github.com/coderanger)) <!-- 2.0.2 -->
--  Support signing with ssh-agent (round two) [#36](https://github.com/chef/mixlib-authentication/pull/36) ([coderanger](https://github.com/coderanger)) <!-- 2.0.1 -->
+<!-- release_rollup since=2.1.0 -->
+### Changes since 2.1.0 release
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
+## [v2.1.0](https://github.com/chef/mixlib-authentication/tree/v2.1.0) (2018-05-31)
+
+#### Merged Pull Requests
+-  Support signing with ssh-agent (round two) [#36](https://github.com/chef/mixlib-authentication/pull/36) ([coderanger](https://github.com/coderanger))
+- Forgot to put sign_version in the opts which would make it nil when p… [#37](https://github.com/chef/mixlib-authentication/pull/37) ([coderanger](https://github.com/coderanger))
+- bump version to 2.1.0 [#38](https://github.com/chef/mixlib-authentication/pull/38) ([thommay](https://github.com/thommay))
+<!-- latest_stable_release -->
+
 ## [v2.0.0](https://github.com/chef/mixlib-authentication/tree/v2.0.0) (2018-04-12)
 
 #### Merged Pull Requests
 - Move mixlib-auth debugging to trace level [#32](https://github.com/chef/mixlib-authentication/pull/32) ([thommay](https://github.com/thommay))
-<!-- latest_stable_release -->
 
 ## 1.4.2 (2017-08-17)
 
