@@ -1,14 +1,18 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 2.1.1 -->
+## [v2.1.1](https://github.com/chef/mixlib-authentication/tree/v2.1.1) (2018-06-01)
 
 #### Merged Pull Requests
+- Silence the warning for the default positional args case [#39](https://github.com/chef/mixlib-authentication/pull/39) ([coderanger](https://github.com/coderanger))
 - bump version to 2.1.0 [#38](https://github.com/chef/mixlib-authentication/pull/38) ([thommay](https://github.com/thommay))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.0 -->
 ### Changes since 2.1.0 release
+
+#### Merged Pull Requests
+- Silence the warning for the default positional args case [#39](https://github.com/chef/mixlib-authentication/pull/39) ([coderanger](https://github.com/coderanger)) <!-- 2.1.1 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
