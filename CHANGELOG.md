@@ -1,9 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release -->
+<!-- latest_release 2.1.2 -->
+## [v2.1.2](https://github.com/chef/mixlib-authentication/tree/v2.1.2) (2018-06-26)
+
+#### Merged Pull Requests
+- remove hashrocket syntax [#40](https://github.com/chef/mixlib-authentication/pull/40) ([lamont-granquist](https://github.com/lamont-granquist))
 <!-- latest_release -->
 
-<!-- release_rollup -->
+<!-- release_rollup since=2.1.1 -->
+### Changes since 2.1.1 release
+
+#### Merged Pull Requests
+- remove hashrocket syntax [#40](https://github.com/chef/mixlib-authentication/pull/40) ([lamont-granquist](https://github.com/lamont-granquist)) <!-- 2.1.2 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
