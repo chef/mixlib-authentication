@@ -316,45 +316,45 @@ PATH = "/organizations/clownco"
 HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
 
 V1_0_ARGS = {
-  :body => BODY,
-  :user_id => USER_ID,
-  :http_method => :post,
-  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-  :file => MockFile.new,
-  :path => PATH,
+  body: BODY,
+  user_id: USER_ID,
+  http_method: :post,
+  timestamp: TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  file: MockFile.new,
+  path: PATH,
 }
 
 V1_1_ARGS = {
-  :body => BODY,
-  :user_id => USER_ID,
-  :http_method => :post,
-  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-  :file => MockFile.new,
-  :path => PATH,
-  :proto_version => 1.1,
+  body: BODY,
+  user_id: USER_ID,
+  http_method: :post,
+  timestamp: TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  file: MockFile.new,
+  path: PATH,
+  proto_version: 1.1,
 }
 
 V1_3_ARGS_SHA256 = {
-  :body => BODY,
-  :user_id => USER_ID,
-  :http_method => :post,
-  :timestamp => TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
-  :file => MockFile.new,
-  :path => PATH,
-  :proto_version => "1.3",
-  :headers => {
+  body: BODY,
+  user_id: USER_ID,
+  http_method: :post,
+  timestamp: TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
+  file: MockFile.new,
+  path: PATH,
+  proto_version: "1.3",
+  headers: {
     "X-OpS-SeRvEr-ApI-VerSiOn" => "1",
   }
   # This defaults to sha256
 }
 
 LONG_PATH_LONG_USER_ARGS = {
-  :body => BODY,
-  :user_id => "A" * 200,
-  :http_method => :put,
-  :timestamp => TIMESTAMP_ISO8601, # fixed timestamp so we get back the same answer each time.
-  :file => MockFile.new,
-  :path => PATH + "/nodes/#{"A" * 250}",
+  body: BODY,
+  user_id: "A" * 200,
+  http_method: :put,
+  timestamp: TIMESTAMP_ISO8601, # fixed timestamp so we get back the same answer each time.
+  file: MockFile.new,
+  path: PATH + "/nodes/#{"A" * 250}",
 }
 
 REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"

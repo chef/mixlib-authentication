@@ -64,18 +64,18 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
   end
 
   it "normalizes the headers to lowercase symbols" do
-    expected = { :host => "127.0.0.1",
-                 :x_ops_sign => "version=1.0",
-                 :x_ops_requestid => "127.0.0.1 1258566194.85386",
-                 :x_ops_timestamp => "2009-01-01T12:00:00Z",
-                 :x_ops_content_hash => "DFteJZPVv6WKdQmMqZUQUumUyRs=",
-                 :x_ops_userid => "spec-user",
-                 :x_ops_authorization_1 => "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
-                 :x_ops_authorization_2 => "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
-                 :x_ops_authorization_3 => "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
-                 :x_ops_authorization_4 => "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
-                 :x_ops_authorization_5 => "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
-                 :x_ops_authorization_6 => "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==" }
+    expected = { host: "127.0.0.1",
+                 x_ops_sign: "version=1.0",
+                 x_ops_requestid: "127.0.0.1 1258566194.85386",
+                 x_ops_timestamp: "2009-01-01T12:00:00Z",
+                 x_ops_content_hash: "DFteJZPVv6WKdQmMqZUQUumUyRs=",
+                 x_ops_userid: "spec-user",
+                 x_ops_authorization_1: "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
+                 x_ops_authorization_2: "NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc",
+                 x_ops_authorization_3: "3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O",
+                 x_ops_authorization_4: "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
+                 x_ops_authorization_5: "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
+                 x_ops_authorization_6: "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==" }
     expect(@http_authentication_request.headers).to eq(expected)
   end
 
