@@ -3,7 +3,7 @@ require "rspec/core/rake_task"
 
 RSpec::Core::RakeTask.new(:spec)
 
-task :default => :spec
+task default: :spec
 
 begin
   require "chefstyle"
@@ -15,4 +15,4 @@ rescue LoadError
   puts "chefstyle/rubocop is not available."
 end
 
-task :ci => [:style, :spec]
+task ci: [:style, :spec]
