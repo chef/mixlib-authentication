@@ -1,6 +1,6 @@
 #
-# Author:: Christopher Brown (<cb@opscode.com>)
-# Copyright:: Copyright (c) 2009 Opscode, Inc.
+# Author:: Christopher Brown (<cb@chef.io>)
+# Copyright:: Copyright (c) 2009-2018 Chef Software, Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
