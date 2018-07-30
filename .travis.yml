@@ -19,4 +19,6 @@ branches:
   only:
   - master
 
-script: bundle exec rake ci
+bundler_args: --without docs development
+
+script: bundle exec rake
