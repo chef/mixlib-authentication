@@ -3,9 +3,21 @@
 
 Mixlib::Authentication provides a class-based header signing authentication object, like the one used in Chef.
 
-## License
-- Author:: Christopher Brown ([cb@chef.io](mailto:cb@chef.io))
-- Copyright:: Copyright (c) 2009-2016 Chef Software, Inc.
+## Documentation
+
+All documentation is written using YARD. You can generate a by running:
+
+```
+rake docs
+```
+
+## Contributing
+
+For information on contributing to this project please see our [Contributing Documentation](https://github.com/chef/chef/blob/master/CONTRIBUTING.md)
+
+## License & Copyright
+
+- Copyright:: Copyright (c) 2009-2018 Chef Software, Inc.
 - License:: Apache License, Version 2.0
 
 ```text
