@@ -19,8 +19,8 @@ github:
 
 promote:
   actions:
-    - built_in:publish_rubygems
     - built_in:rollover_changelog
+    - built_in:publish_rubygems
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
