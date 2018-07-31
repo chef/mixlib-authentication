@@ -10,8 +10,6 @@ rubygems:
 github:
   # The tag format to use (e.g. v1.0.0)
   version_tag_format: "v{{version}}"
-  # The Github Team primarily responsible for handling incoming Pull Requests.
-  maintainer_group: chef/client-maintainers
   # Which Github branches to build gems from, and what versions
   # (as determined by the value in the VERSION file) those branches are responsible
   # for building.
@@ -20,9 +18,9 @@ github:
         version_constraint: 2.*
 
 promote:
-  action:
-    - built_in:publish_rubygems
+  actions:
     - built_in:rollover_changelog
+    - built_in:publish_rubygems
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
@@ -40,4 +38,3 @@ merge_actions:
         - "Expeditor: Skip All"
   - built_in:build_gem:
       only_if: built_in:bump_version
-
