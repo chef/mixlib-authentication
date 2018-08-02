@@ -1,16 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 2.1.3 -->
-## [v2.1.3](https://github.com/chef/mixlib-authentication/tree/v2.1.3) (2018-07-31)
+<!-- latest_release 2.1.4 -->
+## [v2.1.4](https://github.com/chef/mixlib-authentication/tree/v2.1.4) (2018-08-02)
 
 #### Merged Pull Requests
-- Update testing boilerplate [#41](https://github.com/chef/mixlib-authentication/pull/41) ([tas50](https://github.com/tas50))
+- Update codeowners and add github PR template [#43](https://github.com/chef/mixlib-authentication/pull/43) ([tas50](https://github.com/tas50))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.1 -->
 ### Changes since 2.1.1 release
 
 #### Merged Pull Requests
+- Update codeowners and add github PR template [#43](https://github.com/chef/mixlib-authentication/pull/43) ([tas50](https://github.com/tas50)) <!-- 2.1.4 -->
 - Update testing boilerplate [#41](https://github.com/chef/mixlib-authentication/pull/41) ([tas50](https://github.com/tas50)) <!-- 2.1.3 -->
 - remove hashrocket syntax [#40](https://github.com/chef/mixlib-authentication/pull/40) ([lamont-granquist](https://github.com/lamont-granquist)) <!-- 2.1.2 -->
 <!-- release_rollup -->
