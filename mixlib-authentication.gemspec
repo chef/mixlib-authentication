@@ -9,9 +9,8 @@ Gem::Specification.new do |s|
   s.license = "Apache-2.0"
   s.author = "Chef Software, Inc."
   s.email = "info@chef.io"
-  s.homepage = "https://www.chef.io"
+  s.homepage = "https://github.com/chef/mixlib-authentication"
 
-  s.require_path = "lib"
-  s.files = %w{LICENSE README.md Gemfile Rakefile NOTICE} + Dir.glob("*.gemspec") +
-    Dir.glob("{lib,spec}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
+  s.files = %w{LICENSE} + Dir.glob("lib/**/*")
+  s.require_paths = ["lib"]
 end
