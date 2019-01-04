@@ -1,16 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 2.1.5 -->
-## [v2.1.5](https://github.com/chef/mixlib-authentication/tree/v2.1.5) (2018-12-19)
+<!-- latest_release unreleased -->
+## Unreleased
 
 #### Merged Pull Requests
-- Only ship the required libraries in the gem artifact [#44](https://github.com/chef/mixlib-authentication/pull/44) ([tas50](https://github.com/tas50))
+- update travis, drop ruby &lt; 2.5, major version bump [#45](https://github.com/chef/mixlib-authentication/pull/45) ([lamont-granquist](https://github.com/lamont-granquist))
 <!-- latest_release -->
 
 <!-- release_rollup since=2.1.1 -->
 ### Changes since 2.1.1 release
 
 #### Merged Pull Requests
+- update travis, drop ruby &lt; 2.5, major version bump [#45](https://github.com/chef/mixlib-authentication/pull/45) ([lamont-granquist](https://github.com/lamont-granquist)) <!-- 3.0.0 -->
 - Only ship the required libraries in the gem artifact [#44](https://github.com/chef/mixlib-authentication/pull/44) ([tas50](https://github.com/tas50)) <!-- 2.1.5 -->
 - Update codeowners and add github PR template [#43](https://github.com/chef/mixlib-authentication/pull/43) ([tas50](https://github.com/tas50)) <!-- 2.1.4 -->
 - Update testing boilerplate [#41](https://github.com/chef/mixlib-authentication/pull/41) ([tas50](https://github.com/tas50)) <!-- 2.1.3 -->
