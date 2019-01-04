@@ -1,5 +1,5 @@
 #
-# Copyright:: Copyright (c) 2010-2018 Chef Software, Inc.
+# Copyright:: Copyright (c) 2010-2019, Chef Software Inc.
 # License:: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,6 @@
 
 module Mixlib
   module Authentication
-    VERSION = "2.1.5"
+    VERSION = "3.0.0"
   end
 end
