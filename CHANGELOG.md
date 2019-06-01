@@ -1,9 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release -->
+<!-- latest_release 3.0.2 -->
+## [3.0.2](https://github.com/chef/mixlib-authentication/tree/3.0.2) (2019-06-01)
+
+#### Merged Pull Requests
+- Add BuildKite PR Testing [#47](https://github.com/chef/mixlib-authentication/pull/47) ([tas50](https://github.com/tas50))
 <!-- latest_release -->
 
-<!-- release_rollup -->
+<!-- release_rollup since=3.0.1 -->
+### Changes not yet released to rubygems.org
+
+#### Merged Pull Requests
+- Add BuildKite PR Testing [#47](https://github.com/chef/mixlib-authentication/pull/47) ([tas50](https://github.com/tas50)) <!-- 3.0.2 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
