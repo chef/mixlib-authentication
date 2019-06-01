@@ -1,5 +1,5 @@
 # Mixlib::Authentication
-[![Build Status Master](https://travis-ci.org/chef/mixlib-authentication.svg?branch=master)](https://travis-ci.org/chef/mixlib-authentication) [![Gem Version](https://badge.fury.io/rb/mixlib-authentication.svg)](https://badge.fury.io/rb/mixlib-authentication)
+[![Gem Version](https://badge.fury.io/rb/mixlib-authentication.svg)](https://badge.fury.io/rb/mixlib-authentication)
 
 **Umbrella Project**: [Chef Foundation](https://github.com/chef/chef-oss-practices/blob/master/projects/chef-foundation.md)
 
