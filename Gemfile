@@ -9,7 +9,7 @@ group :docs do
 end
 
 group :test do
-  gem "chefstyle", "=0.4.0" # pin needed until we drop Ruby 2.0/2.1 support
+  gem "chefstyle"
   gem "rspec-core", "~> 3.2"
   gem "rspec-mocks", "~> 3.2"
   gem "rspec-expectations", "~> 3.2"
