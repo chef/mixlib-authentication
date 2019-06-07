@@ -3,9 +3,9 @@ source "https://rubygems.org"
 gemspec
 
 group :docs do
-  gem "yard"
-  gem "redcarpet"
   gem "github-markup"
+  gem "redcarpet"
+  gem "yard"
 end
 
 group :test do
@@ -18,7 +18,7 @@ group :test do
   gem "net-ssh"
 end
 
-group :development do
+group :debug do
   gem "pry"
   gem "pry-byebug"
   gem "pry-stack_explorer"

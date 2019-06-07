@@ -13,31 +13,34 @@ environment:
     - ruby_version: "25-x64"
     - ruby_version: "26-x64"
 
+clone_folder: c:\projects\mixlib-authentication
 clone_depth: 1
 skip_tags: true
-skip_branch_with_pr: true
 branches:
   only:
     - master
 
+skip_commits:
+  # version bumps by Expeditor happen as a separate commit after the merge, we can skip
+  author: Chef Expeditor
+  # if ONLY the files listed below are changed in a commit, skip
+  files:
+    - MAINTAINERS.md
+    - MAINTAINERS.toml
+    - CHANGELOG.md
+    - RELEASE_NOTES.md
+
 install:
-  - systeminfo
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - echo %PATH%
-  - appveyor DownloadFile http://curl.haxx.se/ca/cacert.pem -FileName C:\cacert.pem
-  - set SSL_CERT_FILE=C:\cacert.pem
-  - SET BUNDLE_WITHOUT=server:docgen:maintenance:pry:travis:integration:ci
-  - bundle config --local path vendor/bundle # use the cache we define above
-  - bundle install || bundle install || bundle install
-
-build: off
-
-before_test:
   - ruby --version
+  - gem update --system
   - gem --version
+  - gem install bundler --quiet --no-document
   - bundler --version
-  - bundle env
+
+build_script:
+  - bundle install --jobs=7 --retry=3 --without docs debug
 
 test_script:
-  - SET SPEC_OPTS=--format progress
-  - bundle exec rake
+  - bundle exec rspec
