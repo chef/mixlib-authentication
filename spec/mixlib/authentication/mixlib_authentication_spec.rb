@@ -1,3 +1,4 @@
+# rubocop: disable Style/MutableConstant
 #
 # Author:: Tim Hinderliter (<tim@chef.io>)
 # Author:: Christopher Walters (<cw@chef.io>)
@@ -305,15 +306,15 @@ describe "Mixlib::Authentication::SignatureVerification" do
   end
 end
 
-USER_ID = "spec-user".freeze
+USER_ID = "spec-user"
 DIGESTED_USER_ID = Base64.encode64(Digest::SHA1.new.digest(USER_ID)).chomp
-BODY = "Spec Body".freeze
-HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=".freeze # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
-HASHED_BODY_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho=".freeze
-TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z".freeze
+BODY = "Spec Body"
+HASHED_BODY = "DFteJZPVv6WKdQmMqZUQUumUyRs=" # Base64.encode64(Digest::SHA1.digest("Spec Body")).chomp
+HASHED_BODY_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho="
+TIMESTAMP_ISO8601 = "2009-01-01T12:00:00Z"
 TIMESTAMP_OBJ = Time.parse("Thu Jan 01 12:00:00 -0000 2009")
-PATH = "/organizations/clownco".freeze
-HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=".freeze # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
+PATH = "/organizations/clownco"
+HASHED_CANONICAL_PATH = "YtBWDn1blGGuFIuKksdwXzHU9oE=" # Base64.encode64(Digest::SHA1.digest("/organizations/clownco")).chomp
 
 V1_0_ARGS = {
   body: BODY,
@@ -322,7 +323,7 @@ V1_0_ARGS = {
   timestamp: TIMESTAMP_ISO8601,    # fixed timestamp so we get back the same answer each time.
   file: MockFile.new,
   path: PATH,
-}.freeze
+}
 
 V1_1_ARGS = {
   body: BODY,
@@ -332,7 +333,7 @@ V1_1_ARGS = {
   file: MockFile.new,
   path: PATH,
   proto_version: 1.1,
-}.freeze
+}
 
 V1_3_ARGS_SHA256 = {
   body: BODY,
@@ -346,7 +347,7 @@ V1_3_ARGS_SHA256 = {
     "X-OpS-SeRvEr-ApI-VerSiOn" => "1",
   },
   # This defaults to sha256
-}.freeze
+}
 
 LONG_PATH_LONG_USER_ARGS = {
   body: BODY,
@@ -355,13 +356,13 @@ LONG_PATH_LONG_USER_ARGS = {
   timestamp: TIMESTAMP_ISO8601, # fixed timestamp so we get back the same answer each time.
   file: MockFile.new,
   path: PATH + "/nodes/#{"A" * 250}",
-}.freeze
+}
 
-REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa".freeze
+REQUESTING_ACTOR_ID = "c0f8a68c52bffa1020222a56b23cccfa"
 
 # Content hash is ???TODO
-X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs=".freeze
-X_OPS_CONTENT_HASH_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho=".freeze
+X_OPS_CONTENT_HASH = "DFteJZPVv6WKdQmMqZUQUumUyRs="
+X_OPS_CONTENT_HASH_SHA256 = "hDlKNZhIhgso3Fs0S0pZwJ0xyBWtR1RBaeHs1DrzOho="
 
 X_OPS_AUTHORIZATION_LINES_V1_0 = [
 "jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4",
@@ -370,7 +371,7 @@ X_OPS_AUTHORIZATION_LINES_V1_0 = [
 "IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy",
 "9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0",
 "utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==",
-].freeze
+]
 
 X_OPS_AUTHORIZATION_LINES = [
 "UfZD9dRz6rFu6LbP5Mo1oNHcWYxpNIcUfFCffJS1FQa0GtfU/vkt3/O5HuCM",
@@ -379,7 +380,7 @@ X_OPS_AUTHORIZATION_LINES = [
 "vMnl5MF3/OIlsZc8cemq6eKYstp8a8KYq9OmkB5IXIX6qVMJHA6fRvQEB/7j",
 "281Q7oI/O+lE8AmVyBbwruPb7Mp6s4839eYiOdjbDwFjYtbS3XgAjrHlaD7W",
 "FDlbAG7H8Dmvo+wBxmtNkszhzbBnEYtuwQqT8nM/8A==",
-].freeze
+]
 
 X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "FZOmXAyOBAZQV/uw188iBljBJXOm+m8xQ/8KTGLkgGwZNcRFxk1m953XjE3W",
@@ -388,9 +389,9 @@ X_OPS_AUTHORIZATION_LINES_V1_3_SHA256 = [
   "H9h9E0qWlYGqmiNCVrBnpe6Si1gU/Jl+rXlRSNbLJ4GlArAPuL976iTYJTzE",
   "MmbLUIm3JRYi00Yb01IUCCKdI90vUq1HHNtlTEu93YZfQaJwRxXlGkCNwIJe",
   "fy49QzaCIEu1XiOx5Jn+4GmkrZch/RrK9VzQWXgs+w==",
-].freeze
+]
 
-SSH_AGENT_RESPONSE = "\x00\x00\x00\frsa-sha2-256\x00\x00\x01\x00\x15\x93\xA6\\\f\x8E\x04\x06PW\xFB\xB0\xD7\xCF\"\x06X\xC1%s\xA6\xFAo1C\xFF\nLb\xE4\x80l\x195\xC4E\xC6Mf\xF7\x9D\xD7\x8CM\xD6Tl\xB5tT\xFB\xE8\xA7\x9A5i\x8F\b\xDBC\x9A\x9A\xDF\x1Fi\xDA\xE5FE\xB5\xF2\xC8*\xB3\xEF\xEF\x19\xBC\xD1_\xA5\xCCL\xD3w\xD5\x81\xC2\xC7\xCF\xE3gY\xF4\xDF\x95\xF4\x8ERU\xF7\v\xFEU\xAB\xAEZ]\xC9\xB7\xDCx\x90\xB9\x8C\xE7\x0F\xE6\xDC\xDF%u\x94!<\e\xE9\x9D\xC4\xAE\r\xC3Su!\x1F\xD8}\x13J\x96\x95\x81\xAA\x9A#BV\xB0g\xA5\xEE\x92\x8BX\x14\xFC\x99~\xADyQH\xD6\xCB'\x81\xA5\x02\xB0\x0F\xB8\xBF{\xEA$\xD8%<\xC42f\xCBP\x89\xB7%\x16\"\xD3F\e\xD3R\x14\b\"\x9D#\xDD/R\xADG\x1C\xDBeLK\xBD\xDD\x86_A\xA2pG\x15\xE5\x1A@\x8D\xC0\x82^\x7F.=C6\x82 K\xB5^#\xB1\xE4\x99\xFE\xE0i\xA4\xAD\x97!\xFD\x1A\xCA\xF5\\\xD0Yx,\xFB".freeze
+SSH_AGENT_RESPONSE = "\x00\x00\x00\frsa-sha2-256\x00\x00\x01\x00\x15\x93\xA6\\\f\x8E\x04\x06PW\xFB\xB0\xD7\xCF\"\x06X\xC1%s\xA6\xFAo1C\xFF\nLb\xE4\x80l\x195\xC4E\xC6Mf\xF7\x9D\xD7\x8CM\xD6Tl\xB5tT\xFB\xE8\xA7\x9A5i\x8F\b\xDBC\x9A\x9A\xDF\x1Fi\xDA\xE5FE\xB5\xF2\xC8*\xB3\xEF\xEF\x19\xBC\xD1_\xA5\xCCL\xD3w\xD5\x81\xC2\xC7\xCF\xE3gY\xF4\xDF\x95\xF4\x8ERU\xF7\v\xFEU\xAB\xAEZ]\xC9\xB7\xDCx\x90\xB9\x8C\xE7\x0F\xE6\xDC\xDF%u\x94!<\e\xE9\x9D\xC4\xAE\r\xC3Su!\x1F\xD8}\x13J\x96\x95\x81\xAA\x9A#BV\xB0g\xA5\xEE\x92\x8BX\x14\xFC\x99~\xADyQH\xD6\xCB'\x81\xA5\x02\xB0\x0F\xB8\xBF{\xEA$\xD8%<\xC42f\xCBP\x89\xB7%\x16\"\xD3F\e\xD3R\x14\b\"\x9D#\xDD/R\xADG\x1C\xDBeLK\xBD\xDD\x86_A\xA2pG\x15\xE5\x1A@\x8D\xC0\x82^\x7F.=C6\x82 K\xB5^#\xB1\xE4\x99\xFE\xE0i\xA4\xAD\x97!\xFD\x1A\xCA\xF5\\\xD0Yx,\xFB"
 # We expect Mixlib::Authentication::SignedHeaderAuth#sign to return this
 # if passed the BODY above, based on version
 
@@ -405,7 +406,7 @@ EXPECTED_SIGN_RESULT_V1_0 = {
   "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES_V1_0[4],
   "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES_V1_0[5],
   "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
-}.freeze
+}
 
 EXPECTED_SIGN_RESULT_V1_1 = {
   "X-Ops-Content-Hash" => X_OPS_CONTENT_HASH,
@@ -418,7 +419,7 @@ EXPECTED_SIGN_RESULT_V1_1 = {
   "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES[4],
   "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES[5],
   "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
-}.freeze
+}
 
 EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
   "X-Ops-Content-Hash" => X_OPS_CONTENT_HASH_SHA256,
@@ -431,7 +432,7 @@ EXPECTED_SIGN_RESULT_V1_3_SHA256 = {
   "X-Ops-Authorization-5" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[4],
   "X-Ops-Authorization-6" => X_OPS_AUTHORIZATION_LINES_V1_3_SHA256[5],
   "X-Ops-Timestamp" => TIMESTAMP_ISO8601,
-}.freeze
+}
 
 OTHER_HEADERS = {
   # An arbitrary sampling of non-HTTP_* headers are in here to
@@ -441,13 +442,13 @@ OTHER_HEADERS = {
   "REQUEST_PATH" => "/organizations/local-test-org/cookbooks",
   "CONTENT_TYPE" => "multipart/form-data; boundary=----RubyMultipartClient6792ZZZZZ",
   "CONTENT_LENGTH" => "394",
-}.freeze
+}
 
 # This is what will be in request.params for the Merb case.
 MERB_REQUEST_PARAMS = {
   "name" => "zsh", "action" => "create", "controller" => "chef_server_api/cookbooks",
   "organization_id" => "local-test-org", "requesting_actor_id" => REQUESTING_ACTOR_ID
-}.freeze
+}
 
 MERB_HEADERS_V1_3_SHA256 = {
   # These are used by signatureverification.
@@ -505,7 +506,7 @@ PASSENGER_REQUEST_PARAMS = {
   # "tarball"=>#<File:/tmp/RackMultipart20091120-25570-mgq2sa-0>,
   "controller" => "api/v1/cookbooks",
   "cookbook" => "{\"category\":\"databases\"}",
-}.freeze
+}
 
 PASSENGER_HEADERS_V1_1 = {
   # These are used by signatureverification.
@@ -542,7 +543,7 @@ PASSENGER_HEADERS_V1_0 = {
 # generated with
 #   openssl genrsa -out private.pem 2048
 #   openssl rsa -in private.pem -out public.pem -pubout
-PUBLIC_KEY_DATA = <<~EOS.freeze
+PUBLIC_KEY_DATA = <<~EOS
   -----BEGIN PUBLIC KEY-----
   MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0ueqo76MXuP6XqZBILFz
   iH/9AI7C6PaN5W0dSvkr9yInyGHSz/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUB
@@ -556,7 +557,7 @@ EOS
 
 PUBLIC_KEY = OpenSSL::PKey::RSA.new(PUBLIC_KEY_DATA)
 
-PRIVATE_KEY_DATA = <<~EOS.freeze
+PRIVATE_KEY_DATA = <<~EOS
   -----BEGIN RSA PRIVATE KEY-----
   MIIEpAIBAAKCAQEA0ueqo76MXuP6XqZBILFziH/9AI7C6PaN5W0dSvkr9yInyGHS
   z/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUBuAsnlAVQ1z0exDtIFFOyQCdR7iXm
@@ -588,7 +589,7 @@ EOS
 
 PRIVATE_KEY = OpenSSL::PKey::RSA.new(PRIVATE_KEY_DATA)
 
-V1_0_CANONICAL_REQUEST_DATA = <<~EOS.freeze
+V1_0_CANONICAL_REQUEST_DATA = <<~EOS
   Method:POST
   Hashed Path:#{HASHED_CANONICAL_PATH}
   X-Ops-Content-Hash:#{HASHED_BODY}
@@ -597,7 +598,7 @@ V1_0_CANONICAL_REQUEST_DATA = <<~EOS.freeze
 EOS
 V1_0_CANONICAL_REQUEST = V1_0_CANONICAL_REQUEST_DATA.chomp
 
-V1_1_CANONICAL_REQUEST_DATA = <<~EOS.freeze
+V1_1_CANONICAL_REQUEST_DATA = <<~EOS
   Method:POST
   Hashed Path:#{HASHED_CANONICAL_PATH}
   X-Ops-Content-Hash:#{HASHED_BODY}
@@ -606,7 +607,7 @@ V1_1_CANONICAL_REQUEST_DATA = <<~EOS.freeze
 EOS
 V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
 
-V1_3_SHA256_CANONICAL_REQUEST_DATA = <<~EOS.freeze
+V1_3_SHA256_CANONICAL_REQUEST_DATA = <<~EOS
   Method:POST
   Path:#{PATH}
   X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
