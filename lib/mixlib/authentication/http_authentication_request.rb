@@ -22,7 +22,7 @@ module Mixlib
   module Authentication
     class HTTPAuthenticationRequest
 
-      MANDATORY_HEADERS = [:x_ops_sign, :x_ops_userid, :x_ops_timestamp, :host, :x_ops_content_hash].freeze
+      MANDATORY_HEADERS = %i{x_ops_sign x_ops_userid x_ops_timestamp host x_ops_content_hash}.freeze
 
       attr_reader :request
 

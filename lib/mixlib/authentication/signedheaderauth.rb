@@ -34,7 +34,7 @@ module Mixlib
         "1.0" => "sha1",
         "1.1" => "sha1",
         "1.3" => "sha256",
-      }.freeze()
+      }.freeze
 
       # Use of SUPPORTED_ALGORITHMS and SUPPORTED_VERSIONS is deprecated. Use
       # ALGORITHM_FOR_VERSION instead
@@ -74,15 +74,14 @@ module Mixlib
       # * `:host`: The host part of the URI
       def self.signing_object(args = {})
         SigningObject.new(args[:http_method],
-                          args[:path],
-                          args[:body],
-                          args[:host],
-                          args[:timestamp],
-                          args[:user_id],
-                          args[:file],
-                          args[:proto_version],
-                          args[:headers]
-                         )
+          args[:path],
+          args[:body],
+          args[:host],
+          args[:timestamp],
+          args[:user_id],
+          args[:file],
+          args[:proto_version],
+          args[:headers])
       end
 
       def algorithm
@@ -175,7 +174,7 @@ module Mixlib
       # ====Parameters
       #
       def canonical_path
-        p = path.gsub(/\/+/, "/")
+        p = path.gsub(%r{/+}, "/")
         p.length > 1 ? p.chomp("/") : p
       end
 
@@ -191,6 +190,7 @@ module Mixlib
         else
           @hashed_body_digest = digest
         end
+
         # Hash the file object if it was passed in, otherwise hash based on
         # the body.
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
@@ -283,11 +283,13 @@ module Mixlib
             do_sign_ssh_agent(rsa_key, string_to_sign)
           else
             raise AuthenticationError, "RSA private key is required to sign requests, but a public key was provided" unless rsa_key.private?
+
             rsa_key.sign(digest.new, string_to_sign)
           end
         else
           raise AuthenticationError, "Agent signing mode requires signing protocol version 1.3 or newer" if use_ssh_agent
           raise AuthenticationError, "RSA private key is required to sign requests, but a public key was provided" unless rsa_key.private?
+
           rsa_key.private_encrypt(string_to_sign)
         end
       end
@@ -339,25 +341,25 @@ module Mixlib
     # generate a request signature. `SignedHeaderAuth.signing_object()`
     # provides a more convenient interface to the constructor.
     SigningObject = Struct.new(:http_method, :path, :body, :host,
-                                     :timestamp, :user_id, :file, :proto_version,
-                                     :headers) do
+      :timestamp, :user_id, :file, :proto_version,
+      :headers) do
 
-      include SignedHeaderAuth
+        include SignedHeaderAuth
 
-      def proto_version
-        (self[:proto_version] || SignedHeaderAuth::DEFAULT_PROTO_VERSION).to_s
-      end
+        def proto_version
+          (self[:proto_version] || SignedHeaderAuth::DEFAULT_PROTO_VERSION).to_s
+        end
 
-      def server_api_version
-        key = (self[:headers] || {}).keys.select do |k|
-          k.casecmp("x-ops-server-api-version") == 0
-        end.first
-        if key
-          self[:headers][key]
-        else
-          DEFAULT_SERVER_API_VERSION
+        def server_api_version
+          key = (self[:headers] || {}).keys.select do |k|
+            k.casecmp("x-ops-server-api-version") == 0
+          end.first
+          if key
+            self[:headers][key]
+          else
+            DEFAULT_SERVER_API_VERSION
+          end
         end
       end
-    end
   end
 end

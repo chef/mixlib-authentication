@@ -203,7 +203,7 @@ module Mixlib
           # No file_param; we're running in Merb, or it's just not there..
           if file_param.nil?
             hash_param = request.params.values.find { |value| value.respond_to?(:has_key?) } # Hash responds to :has_key? .
-            if !hash_param.nil?
+            unless hash_param.nil?
               file_param = hash_param.values.find { |value| value.respond_to?(:read) } # File/Tempfile responds to :read.
             end
           end
