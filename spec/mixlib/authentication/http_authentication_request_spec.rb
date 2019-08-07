@@ -115,14 +115,14 @@ describe Mixlib::Authentication::HTTPAuthenticationRequest do
   end
 
   it "rebuilds the request signature from the headers" do
-    expected = <<-SIG
-jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4
-NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc
-3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O
-IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy
-9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0
-utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==
-SIG
+    expected = <<~SIG
+      jVHrNniWzpbez/eGWjFnO6lINRIuKOg40ZTIQudcFe47Z9e/HvrszfVXlKG4
+      NMzYZgyooSvU85qkIUmKuCqgG2AIlvYa2Q/2ctrMhoaHhLOCWWoqYNMaEqPc
+      3tKHE+CfvP+WuPdWk4jv4wpIkAz6ZLxToxcGhXmZbXpk56YTmqgBW2cbbw4O
+      IWPZDHSiPcw//AYNgW1CCDptt+UFuaFYbtqZegcBd2n/jzcWODA7zL4KWEUy
+      9q4rlh/+1tBReg60QdsmDRsw/cdO1GZrKtuCwbuD4+nbRdVBKv72rqHX9cu0
+      utju9jzczCyB+sSAQWrxSsXB/b8vV2qs0l4VD2ML+w==
+    SIG
     expect(@http_authentication_request.request_signature).to eq(expected.chomp)
   end
 

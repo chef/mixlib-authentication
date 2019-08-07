@@ -1,3 +1,4 @@
+# rubocop: disable Style/MutableConstant
 #
 # Author:: Tim Hinderliter (<tim@chef.io>)
 # Author:: Christopher Walters (<cw@chef.io>)
@@ -64,7 +65,7 @@ class MockFile
 end
 
 # Uncomment this to get some more info from the methods we're testing.
-#Mixlib::Authentication.logger.level = :trace
+# Mixlib::Authentication.logger.level = :trace
 
 describe "Mixlib::Authentication::SignedHeaderAuth" do
 
@@ -233,7 +234,7 @@ describe "Mixlib::Authentication::SignatureVerification" do
 
     mock_request = MockRequest.new(PATH, MERB_REQUEST_PARAMS, headers, BODY)
     allow(Time).to receive(:now).and_return(TIMESTAMP_OBJ)
-    #Time.stub!(:now).and_return(TIMESTAMP_OBJ)
+    # Time.stub!(:now).and_return(TIMESTAMP_OBJ)
 
     auth_req = Mixlib::Authentication::SignatureVerification.new
     expect { auth_req.authenticate_user_request(mock_request, @user_private_key) }.to raise_error(Mixlib::Authentication::AuthenticationError)
@@ -344,7 +345,7 @@ V1_3_ARGS_SHA256 = {
   proto_version: "1.3",
   headers: {
     "X-OpS-SeRvEr-ApI-VerSiOn" => "1",
-  }
+  },
   # This defaults to sha256
 }
 
@@ -502,7 +503,7 @@ MERB_HEADERS_V1_0 = {
 
 PASSENGER_REQUEST_PARAMS = {
   "action" => "create",
-  #"tarball"=>#<File:/tmp/RackMultipart20091120-25570-mgq2sa-0>,
+  # "tarball"=>#<File:/tmp/RackMultipart20091120-25570-mgq2sa-0>,
   "controller" => "api/v1/cookbooks",
   "cookbook" => "{\"category\":\"databases\"}",
 }
@@ -542,78 +543,78 @@ PASSENGER_HEADERS_V1_0 = {
 # generated with
 #   openssl genrsa -out private.pem 2048
 #   openssl rsa -in private.pem -out public.pem -pubout
-PUBLIC_KEY_DATA = <<EOS
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0ueqo76MXuP6XqZBILFz
-iH/9AI7C6PaN5W0dSvkr9yInyGHSz/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUB
-uAsnlAVQ1z0exDtIFFOyQCdR7iXmjBIWMSS4buBwRQXwDK7id1OxtU23qVJv+xwE
-V0IzaaSJmaGLIbvRBD+qatfUuQJBMU/04DdJIwvLtZBYdC2219m5dUBQaa4bimL+
-YN9EcsDzD9h9UxQo5ReK7b3cNMzJBKJWLzFBcJuePMzAnLFktr/RufX4wpXe6XJx
-oVPaHo72GorLkwnQ0HYMTY8rehT4mDi1FI969LHCFFaFHSAaRnwdXaQkJmSfcxzC
-YQIDAQAB
------END PUBLIC KEY-----
+PUBLIC_KEY_DATA = <<~EOS
+  -----BEGIN PUBLIC KEY-----
+  MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0ueqo76MXuP6XqZBILFz
+  iH/9AI7C6PaN5W0dSvkr9yInyGHSz/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUB
+  uAsnlAVQ1z0exDtIFFOyQCdR7iXmjBIWMSS4buBwRQXwDK7id1OxtU23qVJv+xwE
+  V0IzaaSJmaGLIbvRBD+qatfUuQJBMU/04DdJIwvLtZBYdC2219m5dUBQaa4bimL+
+  YN9EcsDzD9h9UxQo5ReK7b3cNMzJBKJWLzFBcJuePMzAnLFktr/RufX4wpXe6XJx
+  oVPaHo72GorLkwnQ0HYMTY8rehT4mDi1FI969LHCFFaFHSAaRnwdXaQkJmSfcxzC
+  YQIDAQAB
+  -----END PUBLIC KEY-----
 EOS
 
 PUBLIC_KEY = OpenSSL::PKey::RSA.new(PUBLIC_KEY_DATA)
 
-PRIVATE_KEY_DATA = <<EOS
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA0ueqo76MXuP6XqZBILFziH/9AI7C6PaN5W0dSvkr9yInyGHS
-z/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUBuAsnlAVQ1z0exDtIFFOyQCdR7iXm
-jBIWMSS4buBwRQXwDK7id1OxtU23qVJv+xwEV0IzaaSJmaGLIbvRBD+qatfUuQJB
-MU/04DdJIwvLtZBYdC2219m5dUBQaa4bimL+YN9EcsDzD9h9UxQo5ReK7b3cNMzJ
-BKJWLzFBcJuePMzAnLFktr/RufX4wpXe6XJxoVPaHo72GorLkwnQ0HYMTY8rehT4
-mDi1FI969LHCFFaFHSAaRnwdXaQkJmSfcxzCYQIDAQABAoIBAQCW3I4sKN5B9jOe
-xq/pkeWBq4OvhW8Ys1yW0zFT8t6nHbB1XrwscQygd8gE9BPqj3e0iIEqtdphbPmj
-VHqTYbC0FI6QDClifV7noTwTBjeIOlgZ0NSUN0/WgVzIOxUz2mZ2vBZUovKILPqG
-TOi7J7RXMoySMdcXpP1f+PgvYNcnKsT72UcWaSXEV8/zo+Zm/qdGPVWwJonri5Mp
-DVm5EQSENBiRyt028rU6ElXORNmoQpVjDVqZ1gipzXkifdjGyENw2rt4V/iKYD7V
-5iqXOsvP6Cemf4gbrjunAgDG08S00kiUgvVWcdXW+dlsR2nCvH4DOEe3AYYh/aH8
-DxEE7FbtAoGBAPcNO8fJ56mNw0ow4Qg38C+Zss/afhBOCfX4O/SZKv/roRn5+gRM
-KRJYSVXNnsjPI1plzqR4OCyOrjAhtuvL4a0DinDzf1+fiztyNohwYsW1vYmqn3ti
-EN0GhSgE7ppZjqvLQ3f3LUTxynhA0U+k9wflb4irIlViTUlCsOPkrNJDAoGBANqL
-Q+vvuGSsmRLU/Cenjy+Mjj6+QENg51dz34o8JKuVKIPKU8pNnyeLa5fat0qD2MHm
-OB9opeQOcw0dStodxr6DB3wi83bpjeU6BWUGITNiWEaZEBrQ0aiqNJJKrrHm8fAZ
-9o4l4oHc4hI0kYVYYDuxtKuVJrzZiEapTwoOcYiLAoGBAI/EWbeIHZIj9zOjgjEA
-LHvm25HtulLOtyk2jd1njQhlHNk7CW2azIPqcLLH99EwCYi/miNH+pijZ2aHGCXb
-/bZrSxM0ADmrZKDxdB6uGCyp+GS2sBxjEyEsfCyvwhJ8b3Q100tqwiNO+d5FCglp
-HICx2dgUjuRVUliBwOK93nx1AoGAUI8RhIEjOYkeDAESyhNMBr0LGjnLOosX+/as
-qiotYkpjWuFULbibOFp+WMW41vDvD9qrSXir3fstkeIAW5KqVkO6mJnRoT3Knnra
-zjiKOITCAZQeiaP8BO5o3pxE9TMqb9VCO3ffnPstIoTaN4syPg7tiGo8k1SklVeH
-2S8lzq0CgYAKG2fljIYWQvGH628rp4ZcXS4hWmYohOxsnl1YrszbJ+hzR+IQOhGl
-YlkUQYXhy9JixmUUKtH+NXkKX7Lyc8XYw5ETr7JBT3ifs+G7HruDjVG78EJVojbd
-8uLA+DdQm5mg4vd1GTiSK65q/3EeoBlUaVor3HhLFki+i9qpT8CBsg==
------END RSA PRIVATE KEY-----
+PRIVATE_KEY_DATA = <<~EOS
+  -----BEGIN RSA PRIVATE KEY-----
+  MIIEpAIBAAKCAQEA0ueqo76MXuP6XqZBILFziH/9AI7C6PaN5W0dSvkr9yInyGHS
+  z/IR1+4tqvP2qlfKVKI4CP6BFH251Ft9qMUBuAsnlAVQ1z0exDtIFFOyQCdR7iXm
+  jBIWMSS4buBwRQXwDK7id1OxtU23qVJv+xwEV0IzaaSJmaGLIbvRBD+qatfUuQJB
+  MU/04DdJIwvLtZBYdC2219m5dUBQaa4bimL+YN9EcsDzD9h9UxQo5ReK7b3cNMzJ
+  BKJWLzFBcJuePMzAnLFktr/RufX4wpXe6XJxoVPaHo72GorLkwnQ0HYMTY8rehT4
+  mDi1FI969LHCFFaFHSAaRnwdXaQkJmSfcxzCYQIDAQABAoIBAQCW3I4sKN5B9jOe
+  xq/pkeWBq4OvhW8Ys1yW0zFT8t6nHbB1XrwscQygd8gE9BPqj3e0iIEqtdphbPmj
+  VHqTYbC0FI6QDClifV7noTwTBjeIOlgZ0NSUN0/WgVzIOxUz2mZ2vBZUovKILPqG
+  TOi7J7RXMoySMdcXpP1f+PgvYNcnKsT72UcWaSXEV8/zo+Zm/qdGPVWwJonri5Mp
+  DVm5EQSENBiRyt028rU6ElXORNmoQpVjDVqZ1gipzXkifdjGyENw2rt4V/iKYD7V
+  5iqXOsvP6Cemf4gbrjunAgDG08S00kiUgvVWcdXW+dlsR2nCvH4DOEe3AYYh/aH8
+  DxEE7FbtAoGBAPcNO8fJ56mNw0ow4Qg38C+Zss/afhBOCfX4O/SZKv/roRn5+gRM
+  KRJYSVXNnsjPI1plzqR4OCyOrjAhtuvL4a0DinDzf1+fiztyNohwYsW1vYmqn3ti
+  EN0GhSgE7ppZjqvLQ3f3LUTxynhA0U+k9wflb4irIlViTUlCsOPkrNJDAoGBANqL
+  Q+vvuGSsmRLU/Cenjy+Mjj6+QENg51dz34o8JKuVKIPKU8pNnyeLa5fat0qD2MHm
+  OB9opeQOcw0dStodxr6DB3wi83bpjeU6BWUGITNiWEaZEBrQ0aiqNJJKrrHm8fAZ
+  9o4l4oHc4hI0kYVYYDuxtKuVJrzZiEapTwoOcYiLAoGBAI/EWbeIHZIj9zOjgjEA
+  LHvm25HtulLOtyk2jd1njQhlHNk7CW2azIPqcLLH99EwCYi/miNH+pijZ2aHGCXb
+  /bZrSxM0ADmrZKDxdB6uGCyp+GS2sBxjEyEsfCyvwhJ8b3Q100tqwiNO+d5FCglp
+  HICx2dgUjuRVUliBwOK93nx1AoGAUI8RhIEjOYkeDAESyhNMBr0LGjnLOosX+/as
+  qiotYkpjWuFULbibOFp+WMW41vDvD9qrSXir3fstkeIAW5KqVkO6mJnRoT3Knnra
+  zjiKOITCAZQeiaP8BO5o3pxE9TMqb9VCO3ffnPstIoTaN4syPg7tiGo8k1SklVeH
+  2S8lzq0CgYAKG2fljIYWQvGH628rp4ZcXS4hWmYohOxsnl1YrszbJ+hzR+IQOhGl
+  YlkUQYXhy9JixmUUKtH+NXkKX7Lyc8XYw5ETr7JBT3ifs+G7HruDjVG78EJVojbd
+  8uLA+DdQm5mg4vd1GTiSK65q/3EeoBlUaVor3HhLFki+i9qpT8CBsg==
+  -----END RSA PRIVATE KEY-----
 EOS
 
 PRIVATE_KEY = OpenSSL::PKey::RSA.new(PRIVATE_KEY_DATA)
 
-V1_0_CANONICAL_REQUEST_DATA = <<EOS
-Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH}
-X-Ops-Content-Hash:#{HASHED_BODY}
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{USER_ID}
+V1_0_CANONICAL_REQUEST_DATA = <<~EOS
+  Method:POST
+  Hashed Path:#{HASHED_CANONICAL_PATH}
+  X-Ops-Content-Hash:#{HASHED_BODY}
+  X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+  X-Ops-UserId:#{USER_ID}
 EOS
 V1_0_CANONICAL_REQUEST = V1_0_CANONICAL_REQUEST_DATA.chomp
 
-V1_1_CANONICAL_REQUEST_DATA = <<EOS
-Method:POST
-Hashed Path:#{HASHED_CANONICAL_PATH}
-X-Ops-Content-Hash:#{HASHED_BODY}
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{DIGESTED_USER_ID}
+V1_1_CANONICAL_REQUEST_DATA = <<~EOS
+  Method:POST
+  Hashed Path:#{HASHED_CANONICAL_PATH}
+  X-Ops-Content-Hash:#{HASHED_BODY}
+  X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+  X-Ops-UserId:#{DIGESTED_USER_ID}
 EOS
 V1_1_CANONICAL_REQUEST = V1_1_CANONICAL_REQUEST_DATA.chomp
 
-V1_3_SHA256_CANONICAL_REQUEST_DATA = <<EOS
-Method:POST
-Path:#{PATH}
-X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
-X-Ops-Sign:version=1.3
-X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
-X-Ops-UserId:#{USER_ID}
-X-Ops-Server-API-Version:1
+V1_3_SHA256_CANONICAL_REQUEST_DATA = <<~EOS
+  Method:POST
+  Path:#{PATH}
+  X-Ops-Content-Hash:#{HASHED_BODY_SHA256}
+  X-Ops-Sign:version=1.3
+  X-Ops-Timestamp:#{TIMESTAMP_ISO8601}
+  X-Ops-UserId:#{USER_ID}
+  X-Ops-Server-API-Version:1
 EOS
 V1_3_SHA256_CANONICAL_REQUEST = V1_3_SHA256_CANONICAL_REQUEST_DATA.chomp
 

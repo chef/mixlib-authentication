@@ -18,7 +18,7 @@
 
 module Mixlib
   module Authentication
-    DEFAULT_SERVER_API_VERSION = "0"
+    DEFAULT_SERVER_API_VERSION = "0".freeze
 
     attr_accessor :logger
     module_function :logger, :logger=

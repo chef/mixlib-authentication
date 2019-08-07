@@ -3,13 +3,13 @@ source "https://rubygems.org"
 gemspec
 
 group :docs do
-  gem "yard"
-  gem "redcarpet"
   gem "github-markup"
+  gem "redcarpet"
+  gem "yard"
 end
 
 group :test do
-  gem "chefstyle", "=0.4.0" # pin needed until we drop Ruby 2.0/2.1 support
+  gem "chefstyle"
   gem "rspec-core", "~> 3.2"
   gem "rspec-mocks", "~> 3.2"
   gem "rspec-expectations", "~> 3.2"
@@ -18,7 +18,7 @@ group :test do
   gem "net-ssh"
 end
 
-group :development do
+group :debug do
   gem "pry"
   gem "pry-byebug"
   gem "pry-stack_explorer"
