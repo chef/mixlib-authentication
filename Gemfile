@@ -14,7 +14,7 @@ group :test do
   gem "rspec-mocks", "~> 3.2"
   gem "rspec-expectations", "~> 3.2"
   gem "rake"
-  gem "mixlib-log", "~> 2"
+  gem "mixlib-log", "~> 3"
   gem "net-ssh"
 end
 
