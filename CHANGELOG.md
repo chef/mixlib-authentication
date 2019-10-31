@@ -1,22 +1,20 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 3.0.4 -->
-## [v3.0.4](https://github.com/chef/mixlib-authentication/tree/v3.0.4) (2019-10-31)
-
-#### Merged Pull Requests
-- Update mixlib-log requirement from ~&gt; 2 to ~&gt; 3 [#50](https://github.com/chef/mixlib-authentication/pull/50) ([dependabot-preview[bot]](https://github.com/dependabot-preview[bot]))
+<!-- latest_release -->
 <!-- latest_release -->
 
-<!-- release_rollup since=3.0.1 -->
-### Changes not yet released to rubygems.org
-
-#### Merged Pull Requests
-- Update mixlib-log requirement from ~&gt; 2 to ~&gt; 3 [#50](https://github.com/chef/mixlib-authentication/pull/50) ([dependabot-preview[bot]](https://github.com/dependabot-preview[bot])) <!-- 3.0.4 -->
-- Update project owner + Remove Travis CI [#48](https://github.com/chef/mixlib-authentication/pull/48) ([tas50](https://github.com/tas50)) <!-- 3.0.3 -->
-- Add BuildKite PR Testing [#47](https://github.com/chef/mixlib-authentication/pull/47) ([tas50](https://github.com/tas50)) <!-- 3.0.2 -->
+<!-- release_rollup -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
+## [v3.0.4](https://github.com/chef/mixlib-authentication/tree/v3.0.4) (2019-10-31)
+
+#### Merged Pull Requests
+- Add BuildKite PR Testing [#47](https://github.com/chef/mixlib-authentication/pull/47) ([tas50](https://github.com/tas50))
+- Update project owner + Remove Travis CI [#48](https://github.com/chef/mixlib-authentication/pull/48) ([tas50](https://github.com/tas50))
+- Update mixlib-log requirement from ~&gt; 2 to ~&gt; 3 [#50](https://github.com/chef/mixlib-authentication/pull/50) ([dependabot-preview[bot]](https://github.com/dependabot-preview[bot]))
+<!-- latest_stable_release -->
+
 ## [v3.0.1](https://github.com/chef/mixlib-authentication/tree/v3.0.1) (2019-04-23)
 
 #### Merged Pull Requests
@@ -26,7 +24,6 @@
 - Only ship the required libraries in the gem artifact [#44](https://github.com/chef/mixlib-authentication/pull/44) ([tas50](https://github.com/tas50))
 - update travis, drop ruby &lt; 2.5, major version bump [#45](https://github.com/chef/mixlib-authentication/pull/45) ([lamont-granquist](https://github.com/lamont-granquist))
 - Add back Ruby 2.4 support / update testing [#46](https://github.com/chef/mixlib-authentication/pull/46) ([tas50](https://github.com/tas50))
-<!-- latest_stable_release -->
 
 ## [v2.1.1](https://github.com/chef/mixlib-authentication/tree/v2.1.1) (2018-06-08)
 
