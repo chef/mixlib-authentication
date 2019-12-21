@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-require "mixlib/authentication"
+require_relative "../authentication"
 
 module Mixlib
   module Authentication
