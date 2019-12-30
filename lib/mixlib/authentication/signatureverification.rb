@@ -19,9 +19,9 @@
 
 require "net/http"
 require "forwardable"
-require "mixlib/authentication"
-require "mixlib/authentication/http_authentication_request"
-require "mixlib/authentication/signedheaderauth"
+require_relative "../authentication"
+require_relative "http_authentication_request"
+require_relative "signedheaderauth"
 
 module Mixlib
   module Authentication

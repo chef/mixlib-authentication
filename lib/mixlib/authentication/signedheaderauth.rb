@@ -20,8 +20,8 @@
 require "time"
 require "base64"
 require "openssl/digest"
-require "mixlib/authentication"
-require "mixlib/authentication/digester"
+require_relative "../authentication"
+require_relative "digester"
 
 module Mixlib
   module Authentication

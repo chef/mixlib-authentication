@@ -36,7 +36,7 @@ module Mixlib
       require "mixlib/log"
       Mixlib::Authentication::Log.extend(Mixlib::Log)
     rescue LoadError
-      require "mixlib/authentication/null_logger"
+      require_relative "authentication/null_logger"
       Mixlib::Authentication::Log.extend(Mixlib::Authentication::NullLogger)
     end
 
