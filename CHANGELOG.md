@@ -1,16 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 3.0.5 -->
-## [v3.0.5](https://github.com/chef/mixlib-authentication/tree/v3.0.5) (2019-12-19)
+<!-- latest_release 3.0.6 -->
+## [v3.0.6](https://github.com/chef/mixlib-authentication/tree/v3.0.6) (2019-12-30)
 
 #### Merged Pull Requests
-- Test on Ruby 2.7 + random testing improvements [#51](https://github.com/chef/mixlib-authentication/pull/51) ([tas50](https://github.com/tas50))
+- Substitute require for require_relative [#52](https://github.com/chef/mixlib-authentication/pull/52) ([tas50](https://github.com/tas50))
 <!-- latest_release -->
 
 <!-- release_rollup since=3.0.4 -->
 ### Changes not yet released to rubygems.org
 
 #### Merged Pull Requests
+- Substitute require for require_relative [#52](https://github.com/chef/mixlib-authentication/pull/52) ([tas50](https://github.com/tas50)) <!-- 3.0.6 -->
 - Test on Ruby 2.7 + random testing improvements [#51](https://github.com/chef/mixlib-authentication/pull/51) ([tas50](https://github.com/tas50)) <!-- 3.0.5 -->
 <!-- release_rollup -->
 
