@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-require "net/http"
-require "forwardable"
+require "net/http" unless defined?(Net::HTTP)
+require "forwardable" unless defined?(Forwardable)
 require_relative "../authentication"
 require_relative "http_authentication_request"
 require_relative "signedheaderauth"

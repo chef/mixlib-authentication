@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-require "time"
-require "base64"
+require "time" unless defined?(Time)
+require "base64" unless defined?(Base64)
 require "openssl/digest"
 require_relative "../authentication"
 require_relative "digester"
@@ -306,7 +306,7 @@ module Mixlib
       def do_sign_ssh_agent(rsa_key, string_to_sign)
         # First try loading net-ssh as it is an optional dependency.
         begin
-          require "net/ssh"
+          require "net/ssh" unless defined?(Net::SSH)
         rescue LoadError => e
           # ???: Since agent mode is explicitly enabled, should we even catch
           # this in the first place? Might be cleaner to let the LoadError bubble.

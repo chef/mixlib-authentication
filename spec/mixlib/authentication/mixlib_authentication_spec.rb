@@ -20,13 +20,13 @@
 #
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_helper"))
-require "rubygems"
+require "rubygems" unless defined?(Gem)
 
-require "ostruct"
-require "openssl"
+require "ostruct" unless defined?(OpenStruct)
+require "openssl" unless defined?(OpenSSL)
 require "mixlib/authentication/signatureverification"
-require "time"
-require "net/ssh"
+require "time" unless defined?(Time)
+require "net/ssh" unless defined?(Net::SSH)
 
 # TODO: should make these regular spec-based mock objects.
 class MockRequest
