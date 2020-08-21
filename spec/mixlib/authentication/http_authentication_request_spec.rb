@@ -20,8 +20,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_hel
 
 require "mixlib/authentication"
 require "mixlib/authentication/http_authentication_request"
-require "ostruct"
-require "pp"
+require "ostruct" unless defined?(OpenStruct)
+require "pp" unless defined?(PP)
 
 describe Mixlib::Authentication::HTTPAuthenticationRequest do
   before do

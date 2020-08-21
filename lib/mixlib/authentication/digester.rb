@@ -17,7 +17,7 @@
 #
 
 require_relative "../authentication"
-require "openssl"
+require "openssl" unless defined?(OpenSSL)
 
 module Mixlib
   module Authentication

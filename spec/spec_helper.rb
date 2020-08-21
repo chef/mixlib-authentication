@@ -19,4 +19,4 @@
 
 $:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "lib")) # lib in mixlib-authentication
 
-require "rubygems"
+require "rubygems" unless defined?(Gem)
