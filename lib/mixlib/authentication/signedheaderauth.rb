@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-require "time" unless defined?(Time)
+require "time" unless defined?(Time.zone_offset)
 require "base64" unless defined?(Base64)
 require "openssl/digest"
 require_relative "../authentication"
@@ -196,7 +196,7 @@ module Mixlib
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
-        @hashed_body ||= if file && file.respond_to?(:read)
+        @hashed_body ||= if file&.respond_to?(:read)
                            digester.hash_file(file, digest)
                          else
                            digester.hash_string(body, digest)

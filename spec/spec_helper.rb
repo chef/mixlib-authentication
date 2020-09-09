@@ -17,6 +17,6 @@
 # limitations under the License.
 #
 
-$:.unshift File.expand_path(File.join(File.dirname(__FILE__), "..", "lib")) # lib in mixlib-authentication
+$:.unshift File.expand_path(File.join(__dir__, "..", "lib")) # lib in mixlib-authentication
 
 require "rubygems" unless defined?(Gem)
