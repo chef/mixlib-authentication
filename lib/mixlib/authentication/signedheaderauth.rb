@@ -127,7 +127,7 @@ module Mixlib
         }
 
         signature = Base64.encode64(do_sign(rsa_key, digest, sign_algorithm, sign_version, use_ssh_agent)).chomp
-        signature_lines = signature.split(/\n/)
+        signature_lines = signature.split("\n")
         signature_lines.each_index do |idx|
           key = "X-Ops-Authorization-#{idx + 1}"
           header_hash[key] = signature_lines[idx]
