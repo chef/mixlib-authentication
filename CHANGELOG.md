@@ -1,16 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release 3.0.9 -->
-## [v3.0.9](https://github.com/chef/mixlib-authentication/tree/v3.0.9) (2021-03-15)
+<!-- latest_release 3.0.10 -->
+## [v3.0.10](https://github.com/chef/mixlib-authentication/tree/v3.0.10) (2021-03-15)
 
 #### Merged Pull Requests
-- Replace __FILE__ with __dir__ and use safe operators [#54](https://github.com/chef/mixlib-authentication/pull/54) ([tas50](https://github.com/tas50))
+- Test on Ruby 3 and update gem caching [#56](https://github.com/chef/mixlib-authentication/pull/56) ([tas50](https://github.com/tas50))
 <!-- latest_release -->
 
 <!-- release_rollup since=3.0.7 -->
 ### Changes not yet released to rubygems.org
 
 #### Merged Pull Requests
+- Test on Ruby 3 and update gem caching [#56](https://github.com/chef/mixlib-authentication/pull/56) ([tas50](https://github.com/tas50)) <!-- 3.0.10 -->
 - Replace __FILE__ with __dir__ and use safe operators [#54](https://github.com/chef/mixlib-authentication/pull/54) ([tas50](https://github.com/tas50)) <!-- 3.0.9 -->
 - Split using a string not a regex [#55](https://github.com/chef/mixlib-authentication/pull/55) ([tas50](https://github.com/tas50)) <!-- 3.0.8 -->
 <!-- release_rollup -->
