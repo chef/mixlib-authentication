@@ -1,9 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release -->
+<!-- latest_release 3.0.8 -->
+## [v3.0.8](https://github.com/chef/mixlib-authentication/tree/v3.0.8) (2021-03-15)
+
+#### Merged Pull Requests
+- Split using a string not a regex [#55](https://github.com/chef/mixlib-authentication/pull/55) ([tas50](https://github.com/tas50))
 <!-- latest_release -->
 
-<!-- release_rollup -->
+<!-- release_rollup since=3.0.7 -->
+### Changes not yet released to rubygems.org
+
+#### Merged Pull Requests
+- Split using a string not a regex [#55](https://github.com/chef/mixlib-authentication/pull/55) ([tas50](https://github.com/tas50)) <!-- 3.0.8 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
