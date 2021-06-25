@@ -1,9 +1,17 @@
 # mixlib-authentication Changelog
 
-<!-- latest_release -->
+<!-- latest_release 3.0.11 -->
+## [v3.0.11](https://github.com/chef/mixlib-authentication/tree/v3.0.11) (2021-06-25)
+
+#### Merged Pull Requests
+- Upgrade to GitHub-native Dependabot [#57](https://github.com/chef/mixlib-authentication/pull/57) ([dependabot-preview[bot]](https://github.com/dependabot-preview[bot]))
 <!-- latest_release -->
 
-<!-- release_rollup -->
+<!-- release_rollup since=3.0.10 -->
+### Changes not yet released to rubygems.org
+
+#### Merged Pull Requests
+- Upgrade to GitHub-native Dependabot [#57](https://github.com/chef/mixlib-authentication/pull/57) ([dependabot-preview[bot]](https://github.com/dependabot-preview[bot])) <!-- 3.0.11 -->
 <!-- release_rollup -->
 
 <!-- latest_stable_release -->
