@@ -269,7 +269,7 @@ module Mixlib
       # @param rsa_key [OpenSSL::PKey::RSA] User's RSA key. If `use_ssh_agent` is
       #   true, this must have the public key portion populated. If `use_ssh_agent`
       #   is false, this must have the private key portion populated.
-      # @param digest [Class] Sublcass of OpenSSL::Digest to use while signing.
+      # @param digest [Class] Subclass of OpenSSL::Digest to use while signing.
       # @param sign_algorithm [String] Hash algorithm to use while signing.
       # @param sign_version [String] Version number of the signing protocol to use.
       # @param use_ssh_agent [Boolean] If true, use ssh-agent for request signing.
