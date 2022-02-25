@@ -196,7 +196,7 @@ module Mixlib
         # TODO: tim 2009-12-28: It'd be nice to just remove this special case,
         # always sign the entire request body, using the expanded multipart
         # body in the case of a file being include.
-        @hashed_body ||= if file&.respond_to?(:read)
+        @hashed_body ||= if file.respond_to?(:read)
                            digester.hash_file(file, digest)
                          else
                            digester.hash_string(body, digest)
