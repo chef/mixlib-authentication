@@ -16,6 +16,6 @@
 
 module Mixlib
   module Authentication
-    VERSION = "3.0.11".freeze
+    VERSION = "3.1.0".freeze
   end
 end
