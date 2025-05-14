@@ -14,5 +14,9 @@ Gem::Specification.new do |s|
 
   s.files = %w{LICENSE} + Dir.glob("lib/**/*")
   s.require_paths = ["lib"]
+  s.add_dependency "logger"
+  s.add_dependency "ostruct"
+  s.add_dependency "fiddle"
+  s.add_dependency "base64"
   s.add_development_dependency "cookstyle", "~> 8.1"
 end
