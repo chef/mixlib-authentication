@@ -3,7 +3,6 @@ source "https://rubygems.org"
 gemspec
 
 group :test do
-  gem "cookstyle", ">= 7.32.8"
   gem "mixlib-log", "~> 3"
   gem "net-ssh"
   gem "rake"

@@ -10,8 +10,9 @@ Gem::Specification.new do |s|
   s.author = "Chef Software, Inc."
   s.email = "info@chef.io"
   s.homepage = "https://github.com/chef/mixlib-authentication"
-  s.required_ruby_version = ">= 2.5"
+  s.required_ruby_version = ">= 3.1"
 
   s.files = %w{LICENSE} + Dir.glob("lib/**/*")
   s.require_paths = ["lib"]
+  s.add_development_dependency "cookstyle", "~> 8.1"
 end
