@@ -14,7 +14,9 @@ Gem::Specification.new do |s|
 
   s.files = %w{LICENSE} + Dir.glob("lib/**/*")
   s.require_paths = ["lib"]
-  s.add_dependency "logger" # logger, ostruct, fiddle, and base64 are part of the stdlib and are being removed in ruby 3.5 so they must be included in the gemspec
+  # logger, ostruct, fiddle, and base64 are part of the stdlib
+  # and are being removed in ruby 3.5 so they must be included in the gemspec
+  s.add_dependency "logger"
   s.add_dependency "ostruct"
   s.add_dependency "fiddle"
   s.add_dependency "base64"
