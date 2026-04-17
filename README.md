@@ -1,13 +1,7 @@
 # Mixlib::Authentication
 [![Gem Version](https://badge.fury.io/rb/mixlib-authentication.svg)](https://badge.fury.io/rb/mixlib-authentication)[![Build status](https://badge.buildkite.com/6e6fbb678a969e9c28782f83630a526c73d41bf9b70f4e5596.svg?branch=master)](https://buildkite.com/chef-oss/chef-mixlib-authentication-master-verify)
 
-**Umbrella Project**: [Chef Foundation](https://github.com/chef/chef-oss-practices/blob/master/projects/chef-foundation.md)
 
-**Project State**: [Active](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md#active)
-
-**Issues [Response Time Maximum](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md)**: 14 days
-
-**Pull Request [Response Time Maximum](https://github.com/chef/chef-oss-practices/blob/master/repo-management/repo-states.md)**: 14 days
 
 Mixlib::Authentication provides a class-based header signing authentication object, like the one used in Chef.
 
