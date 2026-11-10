@@ -344,22 +344,22 @@ module Mixlib
       :timestamp, :user_id, :file, :proto_version,
       :headers) do
 
-        include SignedHeaderAuth
+      include SignedHeaderAuth
 
-        def proto_version
-          (self[:proto_version] || SignedHeaderAuth::DEFAULT_PROTO_VERSION).to_s
-        end
+      def proto_version
+        (self[:proto_version] || SignedHeaderAuth::DEFAULT_PROTO_VERSION).to_s
+      end
 
-        def server_api_version
-          key = (self[:headers] || {}).keys.select do |k|
-            k.casecmp("x-ops-server-api-version") == 0
-          end.first
-          if key
-            self[:headers][key]
-          else
-            DEFAULT_SERVER_API_VERSION
-          end
+      def server_api_version
+        key = (self[:headers] || {}).keys.select do |k|
+          k.casecmp("x-ops-server-api-version") == 0
+        end.first
+        if key
+          self[:headers][key]
+        else
+          DEFAULT_SERVER_API_VERSION
         end
       end
+    end
   end
 end
