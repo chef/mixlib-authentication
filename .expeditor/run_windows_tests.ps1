@@ -10,15 +10,19 @@ $makes = gci -Path c:\ make.exe -Recurse -ErrorAction SilentlyContinue
 $env:path = "$($makes[0].DirectoryName)" + ";" + $env:path
 
 
-Write-Output "--- Bundle install"
-
-bundle config --local path vendor/bundle
+Write-Output "--- Install Bundler 2.6.9"
+gem install bundler --version 2.6.9 --no-document
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
-bundle install --jobs=7 --retry=3
+Write-Output "--- Bundle install"
+
+bundle _2.6.9_ config --local path vendor/bundle
+If ($lastexitcode -ne 0) { Exit $lastexitcode }
+
+bundle _2.6.9_ install --jobs=7 --retry=3
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
 Write-Output "--- Bundle Execute"
 
-bundle exec rake 
+bundle _2.6.9_ exec rake
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
