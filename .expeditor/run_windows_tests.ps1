@@ -23,7 +23,7 @@ bundle _2.6.9_ install --jobs=7 --retry=3
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
 Write-Output "--- Remove default fiddle gemspec"
-ruby -e 'spec = Gem::Specification.find_all_by_name("fiddle").find(&:default_gem?); if spec; puts "Removing default fiddle gemspec: #{spec.loaded_from}"; File.delete(spec.loaded_from); end'
+ruby -e 'spec = Gem::Specification.find_all_by_name(:fiddle.to_s).find(&:default_gem?); File.delete(spec.loaded_from) if spec'
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
 Write-Output "--- Bundle Execute"
