@@ -22,6 +22,10 @@ If ($lastexitcode -ne 0) { Exit $lastexitcode }
 bundle _2.6.9_ install --jobs=7 --retry=3
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
+Write-Output "--- Install Fiddle 1.1.8 globally"
+gem install fiddle --version 1.1.8 --no-document
+If ($lastexitcode -ne 0) { Exit $lastexitcode }
+
 Write-Output "--- Remove default fiddle gemspec"
 ruby -e 'spec = Gem::Specification.find_all_by_name(:fiddle.to_s).find(&:default_gem?); File.delete(spec.loaded_from) if spec'
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
