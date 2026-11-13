@@ -14,6 +14,10 @@ Write-Output "--- Install Bundler 2.6.9"
 gem install bundler --version 2.6.9 --no-document
 If ($lastexitcode -ne 0) { Exit $lastexitcode }
 
+Write-Output "--- Install MSYS2 OpenSSL runtime"
+ridk exec pacman -S --needed --noconfirm mingw-w64-ucrt-x86_64-openssl
+If ($lastexitcode -ne 0) { Exit $lastexitcode }
+
 Write-Output "--- Bundle install"
 
 bundle _2.6.9_ config --local path vendor/bundle
