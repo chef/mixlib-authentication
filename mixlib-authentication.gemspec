@@ -20,5 +20,5 @@ Gem::Specification.new do |s|
   s.add_dependency "ostruct"
   s.add_dependency "fiddle", "~> 1.1.6"
   s.add_dependency "base64"
-  s.add_development_dependency "cookstyle", "~> 8.1"
+  s.add_development_dependency "cookstyle", "~> 9.0"
 end
